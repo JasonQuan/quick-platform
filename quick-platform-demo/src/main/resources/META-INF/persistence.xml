@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="demo" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <class>com.quick.ext.primefaces.base.web.view.entity.BaseAjaxModel</class>
+    <class>com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel</class>
+    <class>com.quick.ext.primefaces.base.web.view.entity.BaseDashboardModel</class>
+    <class>com.quick.ext.primefaces.base.web.view.entity.BasePanelModel</class>
+    <class>demo.entity.Students</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <shared-cache-mode>DISABLE_SELECTIVE</shared-cache-mode>
+    <validation-mode>NONE</validation-mode>
+    <properties>
+      <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
+      <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/demo"/>
+      <property name="javax.persistence.jdbc.user" value="admin"/>
+      <property name="javax.persistence.jdbc.password" value="admin"/>
+      <property name="eclipselink.session.customizer" value="com.quick.ext.primefaces.base.util.UUIDSequence"/>
+      <!--            <property name="eclipselink.logging.level.sql" value="FINE"/>
+                  <property name="eclipselink.logging.level" value="FINEST"/>
+                  <property name="eclipselink.logging.parameters" value="true"/>
+                  <property name="hibernate.show_sql" value=""/>
+            <property name="hibernate.format_sql" value="true"/>
+            -->
+      <property name="javax.persistence.schema-generation.database.action" value="create"/>
+      <!--<property name="javax.persistence.sql-load-script-source" value="META-INF/init_test_data.sql"/>-->
+    </properties>
+  </persistence-unit>
+</persistence>
