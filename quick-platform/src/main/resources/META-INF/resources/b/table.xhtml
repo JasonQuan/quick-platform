@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<html xmlns="http://www.w3.org/1999/xhtml"
+    <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:cc="http://xmlns.jcp.org/jsf/composite"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/ext"
+      xmlns:pe="http://primefaces.org/ui/exportor"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:b="http://java.sun.com/jsf/composite/b"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
@@ -187,7 +187,7 @@
                                     process="@this" update="entity_table,:growl"/>
                         <p:menuitem value="Export All" rendered="#{cc.attrs.exportALl}"                                    
                                     icon="fa fa-fw fa-download"
-                                    ajax="false" immediate="true">
+                                ajax="false" immediate="true">
                             <pe:exporter target="entity_table" type="xlsx" fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
                             <p:fileDownload value="#{cc.attrs.controller.excel}"/>
                         </p:menuitem>
