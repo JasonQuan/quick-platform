@@ -1,6 +1,6 @@
-* {
+/** {
     font-size: 12px;
-}
+}*/
 
 .app_content {
     border: 0;
@@ -54,7 +54,7 @@
 }
 
 .ui-widget .ui-widget {
-    font-size: 12px;
+    /*font-size: 12px;*/
 }
 
 .ui-outputlabel-rfi {

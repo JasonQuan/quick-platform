@@ -1063,9 +1063,14 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     public void setFreezeColumns(Integer freezeColumns) {
         this.freezeColumns = freezeColumns;
     }
+    private int tableRows;
 
-    public int getRows(int rows) {
-        return rows;
+    public int getTableRows() {
+        return tableRows;
+    }
+
+    public void setTableRows(int rows) {
+        this.tableRows = rows;
     }
 
     public void postExportExcel(Object doc) {

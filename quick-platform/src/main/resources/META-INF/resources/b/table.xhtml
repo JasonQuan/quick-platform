@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-    <html xmlns="http://www.w3.org/1999/xhtml"
+<html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
       xmlns:cc="http://xmlns.jcp.org/jsf/composite"
       xmlns:p="http://primefaces.org/ui"
@@ -23,8 +23,8 @@
     }
     bug:
     component:<p:datatable>
-    error on: <rows="#{ cc.attrs.rows}>
-    error message:< rows="#{ cc.attrs.rows}": The class 'com.sun.faces.el.CompositeComponentAttributesELResolver$ExpressionEvalMap' does not have the property 'rows'.>
+    error on: <rows="# { cc.attrs.rows}>
+    error message:< rows="# { cc.attrs.rows}": The class 'com.sun.faces.el.CompositeComponentAttributesELResolver$ExpressionEvalMap' does not have the property 'rows'.>
     error from:<primefaces bug>
     -->
     <cc:interface>
@@ -49,7 +49,7 @@
         <cc:attribute name="columnToggler" type="java.lang.Boolean" default="false"/>   
         -->
 
-        <cc:attribute name="contextMenu" type="java.lang.String" shortDescription="p:contextMenu src path"/>
+        <cc:attribute name="contextMenu" default="" type="java.lang.String" shortDescription="p:contextMenu src path"/>
         <cc:attribute name="addOneRecord" type="java.lang.Boolean" default="false"/>
         <cc:attribute name="rowSelectRadioUpdate" type="java.lang.String" default="" shortDescription="update id,eg: @this..."/>    
 
@@ -63,10 +63,11 @@
         <cc:attribute name="globalFilter" type="java.lang.Boolean" default="false" shortDescription="TODO:"/>            
         <cc:attribute name="freezeColumns" type="java.lang.Integer" default="0" shortDescription="TODO:full test"/>
         <cc:attribute name="freezeScrollbar" type="java.lang.String" default="autoHide:0" shortDescription="must json format,support"/>
+        <cc:attribute name="blockTable" type="java.lang.Boolean" default="false" shortDescription="block datatable when trigger event on it"/>    
 
         <cc:attribute name="emptyMessage" default="empty records"/>    
         <cc:attribute name="currentPageReportTemplate" default="{startRecord} - {endRecord} of {totalRecords}"/>    
-        <cc:attribute name="paginatorTemplate" default="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"/>    
+        <cc:attribute name="paginatorTemplate" default="{Exporters} {CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} {GlobalFilter}"/>    
         <cc:attribute name="paginatorPosition" default="top"/>    
         <cc:attribute name="rowsPerPageTemplate" default="5,10,15"/>           
     </cc:interface>
@@ -130,11 +131,12 @@
         <p:contextMenu for="entity_table" rendered="#{cc.attrs.contextMenu != ''}">
             <ui:include src="#{cc.attrs.contextMenu}"/>
         </p:contextMenu>
+        <c:set value="#{cc.attrs.rows}" property="tableRows" target="#{cc.attrs.controller}"/>
         <p:dataTable id="entity_table"
                      var="entity"
                      value="#{cc.attrs.controller.dataModel}" 
                      widgetVar="entity_tableTable"
-                     rows="#{cc.attrs.controller.getRows(cc.attrs.rows)}"
+                     rows="#{cc.attrs.controller.tableRows}"
                      lazy="true"   
                      rowIndexVar="index"
                      rowKey="#{entity.id}" 
@@ -156,10 +158,8 @@
                      paginatorPosition="#{cc.attrs.paginatorPosition}"
                      rowsPerPageTemplate="#{cc.attrs.rowsPerPageTemplate}"
                      >
-
-            <f:facet name="header">
-                <h:outputText id="headerText" value="#{cc.attrs.headerText}"/>
-                <h:panelGroup style="float: left;">
+            <f:facet name="{Exporters}">
+                <div style="float:left;">
                     <c:if test="#{cc.attrs.freezeColumns > 0}">
                         <h:outputText value="Freeze Columns:" />
                         <h:selectOneMenu value="#{cc.attrs.controller.freezeColumns}" id='baseDynamicColumnsFreezeSize'>
@@ -187,7 +187,7 @@
                                     process="@this" update="entity_table,:growl"/>
                         <p:menuitem value="Export All" rendered="#{cc.attrs.exportALl}"                                    
                                     icon="fa fa-fw fa-download"
-                                ajax="false" immediate="true">
+                                    ajax="false" immediate="true">
                             <pe:exporter target="entity_table" type="xlsx" fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
                             <p:fileDownload value="#{cc.attrs.controller.excel}"/>
                         </p:menuitem>
@@ -202,20 +202,31 @@
                             <pe:exporter target="entity_table" type="xlsx" selectionOnly="#{cc.attrs.exportSelect}"  fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
                         </p:menuitem>
                     </p:splitButton>  
-                </h:panelGroup>
-                <h:panelGroup rendered="#{cc.attrs.globalFilter}" style="float:right;">
-                    <!--TODO: searche event-->
-                    <p:inputText id="extGlobalFilter" onkeypress="if (event.keyCode === 13){PF('entity_tableTable').filter();}"
-                        style="width:150px" placeholder="Quick Search">
-                    </p:inputText>
-                    <p:commandButton process="extGlobalFilter,@this"
-                                     oncomplete="PF('entity_tableTable').filter()"
-                                     update="entity_table"
-                                     icon="fa fa-search" title="Click do filter"/>
-                </h:panelGroup>
+                </div>
                 <h:outputText style="display: none;" value="#{cc.attrs.exportSheetName}" id="exportSheetName"/>
                 <h:inputHidden rendered="#{cc.attrs.resizableColumns}" value="newWidth" id="newWidth"/>
             </f:facet>
+            <c:if test="#{cc.attrs.globalFilter}">
+                <f:facet name="{GlobalFilter}">
+                    <h:panelGroup style="float:right;">
+                        <!--TODO: searche event-->
+                        <p:inputText id="extGlobalFilter" onkeypress="if (event.keyCode === 13) {
+                                PF('entity_tableTable').filter();
+                            }"
+                                     style="width:150px" placeholder="Quick Search">
+                        </p:inputText>
+                        <p:commandButton process="extGlobalFilter,@this"
+                                         oncomplete="PF('entity_tableTable').filter()"
+                                         update="entity_table"
+                                         icon="fa fa-search" title="Click do filter"/>
+                    </h:panelGroup>
+                </f:facet>
+            </c:if>
+            <c:if test="#{cc.attrs.headerText != null and cc.attrs.headerText.length() != 0}">
+                <f:facet name="header">
+                    <h:outputText id="headerText" value="#{cc.attrs.headerText}"/>
+                </f:facet>
+            </c:if>
             <p:ajax event="filter" onstart="setOldLeft();" oncomplete="doFilter();"/>
             <p:ajax event="sort" onstart="setOldLeft();" oncomplete="freezeColumns();"/>
             <p:ajax event="page" onstart="setOldLeft();" oncomplete="freezeColumns();"/>   
@@ -250,8 +261,8 @@
                 <h:outputText value="#{index+1}"/>
             </p:column>
             <pe:column rendered="#{(cc.attrs.selected eq 'entity') or (cc.attrs.selected eq 'entitys')}" selectionMode="#{cc.attrs.selected eq 'entity'?'single':'multiple'}"
-                      exportable="false"
-                      style="width:24px;text-align:center"/>
+                       exportable="false"
+                       style="width:24px;text-align:center"/>
             <c:forEach items="#{cc.attrs.controller.columns}" var="column">     
                 <c:if test="#{column.isExtInclude}">
                     <ui:include src="#{column.include}"/>
@@ -483,7 +494,7 @@
             </pe:column>
             <cc:insertChildren/>            
         </p:dataTable>
-        <p:blockUI block="entity_table" widgetVar="blockUI" trigger="entity_table" blocked="false" animate="true">
+        <p:blockUI rendered="#{cc.attrs.blockTable}" block="entity_table" widgetVar="blockUI" trigger="entity_table" blocked="false" animate="true">
             LOADING...<br />
             <p:graphicImage library="img" name="ajaxloadingbar.gif"/>
         </p:blockUI>
