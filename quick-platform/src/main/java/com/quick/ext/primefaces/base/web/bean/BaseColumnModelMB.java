@@ -27,21 +27,15 @@ import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
 import com.sun.faces.application.ApplicationAssociate;
 import com.sun.faces.mgbean.BeanBuilder;
 import com.sun.faces.mgbean.BeanManager;
-import javax.enterprise.context.SessionScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
 
-@SessionScoped
-@Named
-//@ManagedBean
-//@ViewScoped
+@ManagedBean
+@ViewScoped
 public class BaseColumnModelMB extends BaseMB<BaseColumnModel, BaseColumnModel> {
 
-    @Inject
-    private BaseColumnModelSB baseColumnModelSB;// = new BaseColumnModelSB();
+    private BaseColumnModelSB baseColumnModelSB = new BaseColumnModelSB();
 
     @Override
-    protected BaseEJB  dao() {
+    protected BaseEJB dao() {
         return baseColumnModelSB;
     }
 

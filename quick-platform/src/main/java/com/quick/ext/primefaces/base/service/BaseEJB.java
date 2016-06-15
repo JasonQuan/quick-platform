@@ -41,7 +41,7 @@ import org.primefaces.model.SortOrder;
 
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
 import com.quick.ext.primefaces.base.exception.BaseExceptoin;
-import com.quick.ext.primefaces.base.interceptor.AccessLogInterceptor;
+import com.quick.ext.primefaces.base.interceptor.TrackInterceptor;
 import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.DateUitl;
 import com.quick.ext.primefaces.base.util.MessageBundle;
@@ -49,10 +49,12 @@ import com.quick.ext.primefaces.base.util.ObjectUtil;
 import com.quick.ext.primefaces.base.util.VOHelper;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
+import static com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_.sort;
 import static java.util.Arrays.sort;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.interceptor.Interceptors;
 
 /**
  * @TODO: check why lost generic paradigm if using Inject in the jar
@@ -63,16 +65,20 @@ import java.util.logging.Logger;
  */
 // TODO: detailed exception log
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
-@AccessLogInterceptor
+@Interceptors(TrackInterceptor.class)
 public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
     protected final BaseLogger logger = new BaseLogger(this.getClass());
-    private final Class<T> entityClass = getEntityClass();
-    private final Class<E> voClass = getVOClass();
+    private final Class<T> entityClass;
+    private final Class<E> voClass;
 
     public BaseEJB() {
-////        entityClass = (Class<T>) ObjectUtil.getSuperClassGenricType(getClass(), 0);
-//        voClass = (Class<E>) ObjectUtil.getSuperClassGenricType(getClass(), 1);
+        entityClass = (Class<T>) ObjectUtil.getSuperClassGenricType(getClass(), 0);
+        voClass = (Class<E>) ObjectUtil.getSuperClassGenricType(getClass(), 1);
+    }
+    
+    public final Class<T> getEntityClass(){
+        return entityClass;
     }
 
     /**
@@ -80,10 +86,6 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @return EntityManager, Entity class, primaryKey
      */
     // protected abstract BaseDaoParam<T> getBaseDaoParam();
-    public abstract Class<T> getEntityClass();
-
-    public abstract Class<E> getVOClass();
-
     protected abstract EntityManager getEntityManager();
 
     /**
@@ -107,7 +109,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         try {
             tableAnnotation = t.getClass().getAnnotation(Table.class);
             if (tableAnnotation == null) {
-                throw new NullPointerException("without Table Annotaion on entity " + getEntityClass());
+                throw new NullPointerException("without Table Annotaion on entity " + entityClass);
             }
         } catch (NullPointerException e) {
             logger.warn(e);
@@ -700,8 +702,6 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         facesMessage = new FacesMessage(MessageBundle.REMOVE);
         try {
             // TODO:SELECT LAST_INSERT_ID();
-            Class<T> entityClass = getEntityClass();
-
             Field[] fields = entityClass.getDeclaredFields();
 
             for (Field f : fields) {
@@ -808,7 +808,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             // value + "' WHERE ID = '" + id + "'";
             // int count = excuteNativeSql(sql);
 
-            Query query = getEntityManager().createQuery("UPDATE " + getEntityClass().getSimpleName() + " o SET o." + field + " = :field WHERE o.id = :id ");
+            Query query = getEntityManager().createQuery("UPDATE " + entityClass.getSimpleName() + " o SET o." + field + " = :field WHERE o.id = :id ");
             query.setParameter("field", value);
             query.setParameter("id", id);
             getEntityManager().getTransaction().begin();
@@ -1629,7 +1629,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         try {
             // TODO: check error [B cannot be cast to java.lang.String
             // String sql = "SELECT max(concat(o.sort+1,'')) FROM " +
-            // getEntityClass().getSimpleName() + " o";
+            // entityClass.getSimpleName() + " o";
             // TODO: ClassCastException: [B cannot be cast to java.lang.String
             // return findObjectByJPQL(sql, String.class);
         } catch (Exception e) {
@@ -1694,7 +1694,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
         // TODO: other dataType
         Query query = getEntityManager().createQuery(
-                "UPDATE " + getEntityClass().getSimpleName() + " o SET o." + field + " = :field WHERE o." + getIdFieldName() + " = :id");
+                "UPDATE " + entityClass.getSimpleName() + " o SET o." + field + " = :field WHERE o." + getIdFieldName() + " = :id");
         if (ObjectUtil.isDate(object)) {
             query.setParameter("field", (Date) value, TemporalType.TIMESTAMP);
         } else {
@@ -1775,7 +1775,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
 
     public String getIdFieldName() {
         String outcome = "";
-        Field[] fields = getEntityClass().getDeclaredFields();
+        Field[] fields = entityClass.getDeclaredFields();
         try {
             Field idField = null;
             for (Field field : fields) {

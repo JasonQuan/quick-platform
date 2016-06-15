@@ -20,18 +20,12 @@ import com.quick.ext.primefaces.base.util.ColumnHelper;
 import com.quick.ext.primefaces.base.util.ObjectUtil;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import java.io.Serializable;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Model;
-import javax.inject.Named;
 
 /**
  * TODO: table header show or hide
  *
  * @author Jason
  */
-//@Dependent
-@Model
-//@Named
 public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseColumnModel> implements Serializable {
 
     public void resetColumns(Class<?> cla, String customsKey) {
@@ -334,15 +328,4 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
         }
         return items;
     }
-
-    @Override
-    public Class<BaseColumnModel> getEntityClass() {
-        return BaseColumnModel.class;
-    }
-
-    @Override
-    public Class<BaseColumnModel> getVOClass() {
-        return BaseColumnModel.class;
-    }
-
 }

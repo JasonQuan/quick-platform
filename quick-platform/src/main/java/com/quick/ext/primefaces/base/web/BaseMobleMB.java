@@ -209,7 +209,6 @@ public abstract class BaseMobleMB<T extends AbstractEntity, E extends AbstractEn
 //		this.pageSelectEntitys = null;
     }
 
-  
     protected String getSetForegin(String str) {
         // str = str.replace("add", "").replace("edit", "");
         String[] a = str.split("");
@@ -217,7 +216,8 @@ public abstract class BaseMobleMB<T extends AbstractEntity, E extends AbstractEn
     }
 
     /**
-     * bug on pf5.2: PF().filter() not working under the p:columns,so, just inputText can working on column filter for now.
+     * bug on pf5.2: PF().filter() not working under the p:columns,so, just
+     * inputText can working on column filter for now.
      */
     private List<BaseColumnModel> columns = new ArrayList<>();
     private BaseColumnModelSB columnModelDao = new BaseColumnModelSB();

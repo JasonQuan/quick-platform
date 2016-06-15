@@ -4,7 +4,6 @@ import javax.annotation.PostConstruct;
 
 import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
-import javax.inject.Inject;
 
 /**
  *
@@ -14,7 +13,7 @@ import javax.inject.Inject;
  
 public class AppStartUp {
 
-    @Inject
+//    @Inject
     private BaseColumnModelSB baseColumnModelSB;
     private BaseLogger LOGGER = new BaseLogger(this.getClass());
 

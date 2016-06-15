@@ -1,7 +1,6 @@
 package com.quick.ext.primefaces.base.service;
 
 import java.util.ServiceLoader;
-import javax.enterprise.inject.Default;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;

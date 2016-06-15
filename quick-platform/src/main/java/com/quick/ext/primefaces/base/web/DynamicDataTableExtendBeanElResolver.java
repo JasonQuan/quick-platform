@@ -29,7 +29,7 @@ public class DynamicDataTableExtendBeanElResolver extends BeanELResolver {
                 }
             }
             String propertyString = property.toString();
-            if (propertyString.startsWith("primefaces")) {
+            if (propertyString.startsWith("primefaces") ||  propertyString.contains("/")) {
                 return null;
             }
             if (!propertyString.startsWith(FIX) && propertyString.contains(".")) {
@@ -45,5 +45,8 @@ public class DynamicDataTableExtendBeanElResolver extends BeanELResolver {
             e.printStackTrace();
             return super.getValue(context, base, property);
         }
+    }
+    public static void main(String[] a){
+        System.out.println("asdfadsfadf".contains("/"));
     }
 }

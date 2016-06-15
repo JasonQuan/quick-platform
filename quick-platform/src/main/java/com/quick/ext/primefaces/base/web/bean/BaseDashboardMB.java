@@ -14,7 +14,6 @@ import javax.el.MethodExpression;
 import javax.faces.application.Application;
 import javax.faces.context.FacesContext;
 import javax.faces.view.facelets.FaceletContext;
-import javax.inject.Inject;
 import org.primefaces.behavior.ajax.AjaxBehavior;
 import org.primefaces.behavior.ajax.AjaxBehaviorListenerImpl;
 import org.primefaces.component.dashboard.Dashboard;
@@ -31,10 +30,8 @@ public abstract class BaseDashboardMB {
     private Dashboard dashboard;
     private List<BasePanelModel> panels;
     private BaseDashboardModel basedashboard;
-    @Inject
-    private DashboardSB dashboardSB;// = new DashboardSB();
-    @Inject
-    private PanelModelSB panelModelSB;//= new PanelModelSB();
+    private DashboardSB dashboardSB = new DashboardSB();
+    private PanelModelSB panelModelSB = new PanelModelSB();
 
     public void ajaxListener() {
     }

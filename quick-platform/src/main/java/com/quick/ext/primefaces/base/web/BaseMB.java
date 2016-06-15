@@ -37,7 +37,7 @@ import org.primefaces.model.StreamedContent;
 
 import com.quick.ext.primefaces.base.service.BaseEJB;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
-import com.quick.ext.primefaces.base.interceptor.AccessLogInterceptor;
+import com.quick.ext.primefaces.base.interceptor.TrackInterceptor;
 import com.quick.ext.primefaces.base.util.BaseKeyValue;
 import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.MessageBundle;
@@ -45,7 +45,7 @@ import com.quick.ext.primefaces.base.util.ObjectUtil;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
-import javax.inject.Inject;
+import javax.interceptor.Interceptors;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -64,7 +64,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * @param <E> DataTable数据类型，开发测试中，目前跟T保持一致
  */
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
-@AccessLogInterceptor
+@Interceptors(TrackInterceptor.class)
 public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
     protected BaseLogger logger = new BaseLogger(this.getClass());
@@ -607,8 +607,7 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      */
     private List<BaseColumnModel> columns = new ArrayList<>();
 
-    @Inject
-    BaseColumnModelSB columnModelDao ;//= new BaseColumnModelSB();
+    BaseColumnModelSB columnModelDao = new BaseColumnModelSB();
 
     /**
      * use for get customs columns
