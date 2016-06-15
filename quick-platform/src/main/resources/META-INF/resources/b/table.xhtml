@@ -206,22 +206,22 @@
                 <h:outputText style="display: none;" value="#{cc.attrs.exportSheetName}" id="exportSheetName"/>
                 <h:inputHidden rendered="#{cc.attrs.resizableColumns}" value="newWidth" id="newWidth"/>
             </f:facet>
-            <c:if test="#{cc.attrs.globalFilter}">
-                <f:facet name="{GlobalFilter}">
-                    <h:panelGroup style="float:right;">
+            <f:facet name="{GlobalFilter}">
+                <h:panelGroup style="float:right;">
+                    <c:if test="#{cc.attrs.globalFilter}">
                         <!--TODO: searche event-->
                         <p:inputText id="extGlobalFilter" onkeypress="if (event.keyCode === 13) {
-                                PF('entity_tableTable').filter();
-                            }"
+                                    PF('entity_tableTable').filter();
+                                }"
                                      style="width:150px" placeholder="Quick Search">
                         </p:inputText>
                         <p:commandButton process="extGlobalFilter,@this"
                                          oncomplete="PF('entity_tableTable').filter()"
                                          update="entity_table"
                                          icon="fa fa-search" title="Click do filter"/>
-                    </h:panelGroup>
-                </f:facet>
-            </c:if>
+                    </c:if>
+                </h:panelGroup>
+            </f:facet>
             <c:if test="#{cc.attrs.headerText != null and cc.attrs.headerText.length() != 0}">
                 <f:facet name="header">
                     <h:outputText id="headerText" value="#{cc.attrs.headerText}"/>
