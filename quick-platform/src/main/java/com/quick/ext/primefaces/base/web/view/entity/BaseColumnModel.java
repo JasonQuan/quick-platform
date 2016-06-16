@@ -39,7 +39,7 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     private String sort;
 
     @ColumnHelper(sort = "3", style = "float: left;")
-    @Column(name = "HEADER", length = 255)
+    @Column(name = "HEADER", length = 1000)
     private String header;
 
     @ColumnHelper(sort = "2", editAble = true, style = "float: left;")
