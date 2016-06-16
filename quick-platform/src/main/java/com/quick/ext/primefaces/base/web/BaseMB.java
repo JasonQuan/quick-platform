@@ -653,7 +653,7 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
             // TODO: change to batch update
             for (String order : orders) {
                 condations = order.split("-");
-                columnModelDao.update(condations[0], BaseColumnModel_.sort, condations[1]);
+                columnModelDao.update(condations[0], BaseColumnModel_.sort, Integer.valueOf(condations[1]));
             }
             initViewColums();
             MessageBundle.showInfo("order sucessful");
