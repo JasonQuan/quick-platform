@@ -127,7 +127,7 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     private int exportSort;
     @ColumnHelper
     @Column(name = "EXPORT_HEADER")
-    private int exportHeader;
+    private String exportHeader;
     @ColumnHelper
     @Column(name = "WIDTH")
     private String width;
@@ -305,11 +305,11 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
         this.exportSort = exportSort;
     }
 
-    public int getExportHeader() {
+    public String getExportHeader() {
         return exportHeader;
     }
 
-    public void setExportHeader(int exportHeader) {
+    public void setExportHeader(String exportHeader) {
         this.exportHeader = exportHeader;
     }
 

@@ -277,7 +277,9 @@
                         id="columns"
                         styleClass="ba-column columnId-#{column.id}"
                         style="width:#{column.width};#{column.style};"
-                        rendered="#{column.hasExtFunction}" exportSort="#{column.exportSort}">
+                        rendered="#{column.hasExtFunction}" 
+                        exportSort="#{column.exportSort}"
+                        exportHeader="#{column.exportHeader}">
                         <span style="display: none"/>
                         <p:commandButton 
                             rendered="#{column.isExtButton and entity[column.extRendered]}"
@@ -317,6 +319,7 @@
                         styleClass="ba-column columnId-#{column.id} #{column.styleClass}"
                         sortBy="#{false?entity[column.field]:''}"
                         exportSort="#{column.exportSort}"
+                        exportHeader="#{column.exportHeader}"
                         filterBy="#{entity[column.field]}">
                         <c:if test="#{cc.attrs.filter}">
                             <f:facet name="filter">

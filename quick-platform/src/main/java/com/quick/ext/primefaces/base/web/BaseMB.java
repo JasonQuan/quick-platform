@@ -1078,11 +1078,12 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         XSSFSheet sheet = wb.getSheetAt(0);
 
         XSSFCellStyle styleHeader = wb.createCellStyle();
-        styleHeader.setFillPattern(CellStyle.SOLID_FOREGROUND);
-        styleHeader.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
+//        styleHeader.setFillPattern(CellStyle.SOLID_FOREGROUND);
+//        styleHeader.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
         styleHeader.setAlignment(CellStyle.ALIGN_CENTER);
         styleHeader.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         styleHeader.setWrapText(true);
+        
 
         XSSFCellStyle sheetStyle = wb.createCellStyle();
         sheetStyle.setAlignment(CellStyle.ALIGN_CENTER);
@@ -1093,10 +1094,11 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         for (int c = 0; c < row0.getPhysicalNumberOfCells(); c++) {
             sheet.autoSizeColumn(c, true);
             XSSFCell header = row0.getCell(c);
-            if (header.getStringCellValue().contains("<br>")) {
-                header.setCellValue(new HSSFRichTextString(row0.getCell(c).getStringCellValue().replaceAll("<br>", "\r\n")));
-            }
+//            if (header.getStringCellValue().contains("<br>")) {
+//                header.setCellValue(new HSSFRichTextString(row0.getCell(c).getStringCellValue().replaceAll("<br>", "\r\n")));
+//            }
             header.setCellStyle(styleHeader);
+            sheet.autoSizeColumn(c, true);
         }
 
     }
