@@ -224,7 +224,7 @@
             </f:facet>
             <c:if test="#{cc.attrs.headerText != null and cc.attrs.headerText.length() != 0}">
                 <f:facet name="header">
-                    <h:outputText id="headerText" value="#{cc.attrs.headerText}"/>
+                    <h:outputText id="headerText" escape="false" value="#{cc.attrs.headerText}"/>
                 </f:facet>
             </c:if>
             <p:ajax event="filter" onstart="setOldLeft();" oncomplete="doFilter();"/>
@@ -364,7 +364,7 @@
                                            update="entity_table"                                           
                                            oncomplete="removeColumn('#{column.id}')" process="@this">
                             </p:commandLink>
-                            <h:outputText id="column_sort" value="#{column.header}" class="column_sort_#{column.id}"/>
+                            <h:outputText id="column_sort" escape="false" value="#{column.header}" class="column_sort_#{column.id}"/>
                         </f:facet>
 
                         <c:if test="#{!cc.attrs.cellEdit}">
