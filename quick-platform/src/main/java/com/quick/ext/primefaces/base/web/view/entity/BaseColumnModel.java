@@ -35,7 +35,7 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     private String entity;
 
     @ColumnHelper(editAble = false, visible = false)
-    @Column(name = "SORT", length = 255)
+    @Column(name = "SORT")
     private int sort;
 
     @ColumnHelper(sort = 3, style = "float: left;")
