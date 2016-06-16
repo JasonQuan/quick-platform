@@ -30,27 +30,27 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     @Column(name = "ID", nullable = false, length = 32)
     private String id;
 
-    @ColumnHelper(sort = "1", editAble = true, filterOptions = "entityItems", style = "float: left;")
+    @ColumnHelper(sort = 1, editAble = true, filterOptions = "entityItems", style = "float: left;")
     @Column(name = "ENTITY", length = 255)
     private String entity;
 
     @ColumnHelper(editAble = false, visible = false)
     @Column(name = "SORT", length = 255)
-    private String sort;
+    private int sort;
 
-    @ColumnHelper(sort = "3", style = "float: left;")
+    @ColumnHelper(sort = 3, style = "float: left;")
     @Column(name = "HEADER", length = 1000)
     private String header;
 
-    @ColumnHelper(sort = "2", editAble = true, style = "float: left;")
+    @ColumnHelper(sort = 2, editAble = true, style = "float: left;")
     @Column(name = "FIELD", length = 255)
     private String field;
 
-    @ColumnHelper(sort = "4")
+    @ColumnHelper(sort = 4)
     @Column(name = "EDIT")
     private Boolean edit;
 
-    @ColumnHelper(sort = "5", editAble = true)
+    @ColumnHelper(sort = 5, editAble = true)
     @Column(name = "CUSTOM_KEY")
     private String customsKey;
 
@@ -58,11 +58,11 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     @Column(name = "HEADER_CN", length = 255)
     private String headerCn;
 
-    @ColumnHelper(sort = "7", editAble = true, style = "float: left;")
+    @ColumnHelper(sort = 7, editAble = true, style = "float: left;")
     @Column(name = "TABLE_COLUMN", length = 255)
     private String tableColumn;
 
-    @ColumnHelper(sort = "6", editAble = true, style = "float: left;")
+    @ColumnHelper(sort = 6, editAble = true, style = "float: left;")
     @Column(name = "DATA_TYPE")
     private String dataType;
 
@@ -685,11 +685,11 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
         this.id = id;
     }
 
-    public String getSort() {
+    public int getSort() {
         return sort;
     }
 
-    public void setSort(String sort) {
+    public void setSort(int sort) {
         this.sort = sort;
     }
 

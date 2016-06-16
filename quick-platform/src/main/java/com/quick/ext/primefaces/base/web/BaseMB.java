@@ -909,14 +909,14 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         List<BaseColumnModel> source = advancedSelectColumns.getSource();
         for (int i = 0; i < source.size(); i++) {
             BaseColumnModel o = source.get(i);
-            o.setSort(String.valueOf(i));
+            o.setSort(i);
             o.setVisible(true);
             columnModelDao.update(o);
         }
         List<BaseColumnModel> target = getAdvancedSelectColumns().getTarget();
         for (int i = 0; i < target.size(); i++) {
             BaseColumnModel o = target.get(i);
-            o.setSort("999");
+            o.setSort(999);
             o.setVisible(false);
             columnModelDao.update(o);
         }

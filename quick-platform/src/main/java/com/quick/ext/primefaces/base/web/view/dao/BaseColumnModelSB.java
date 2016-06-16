@@ -126,11 +126,11 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
             cm.setTableColumn(column);
             cm.setCustomsKey("default");
             cm.setStyle("text-align: center;");
-            cm.setSort(String.valueOf(i));
+            cm.setSort(i);
             cm.setWidth("auto;");
             cm.setEdit(Boolean.TRUE);
             cm.setToggleable(Boolean.TRUE);
-            cm.setSort("999");
+            cm.setSort(999);
 
             if (fields[i].contains(".")) {
                 cm.setVisible(false);
@@ -211,7 +211,7 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
             cm.setFilterable(ch.filterable());
             cm.setIsMultiFilter(ch.isMultiFilter());
             cm.setSortable(ch.sortable());
-
+            cm.setSort(ch.sort());
             if (StringUtils.isNotBlank(ch.footer())) {
                 cm.setFooter(ch.footer());
             }
@@ -248,9 +248,6 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
             }
             if (StringUtils.isNotBlank(ch.width())) {
                 cm.setWidth(ch.width());
-            }
-            if (StringUtils.isNotBlank(ch.sort())) {
-                cm.setSort(ch.sort());
             }
 
             if (StringUtils.isNotBlank(ch.tableColumn())) {

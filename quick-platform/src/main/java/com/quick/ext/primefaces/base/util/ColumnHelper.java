@@ -52,7 +52,7 @@ public @interface ColumnHelper {
 
 	String width() default "40px";
 
-	String sort() default "999";
+	int sort() default 999;
 
 	String tableColumn() default "";
 
