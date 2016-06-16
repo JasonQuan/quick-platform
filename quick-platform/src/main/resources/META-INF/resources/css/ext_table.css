@@ -1,6 +1,9 @@
 /** {
     font-size: 12px;
 }*/
+.dynamicDataTable th,.dynamicDataTable td{
+    font-family: "Microsoft Yahei", Arial !important;
+}
 
 .app_content {
     border: 0;

@@ -31,6 +31,7 @@
         <cc:attribute name="controller" type="com.quick.ext.primefaces.base.web.BaseMB" required="true"/>        
         <cc:attribute name="headerText" type="java.lang.String" shortDescription="data table header text"/>    
         <cc:attribute name="style" type="java.lang.String" shortDescription="css style"/>
+        <cc:attribute name="tableClass" default="dynamicDataTable" shortDescription="data table table class"/>
         <cc:attribute name="rows" type="java.lang.Integer" default="10" shortDescription="primefaces data table rows"/>    
         <cc:attribute name="deleteRow" type="java.lang.Boolean" default="false"/>    
         <cc:attribute name="removeOnColumn" type="java.lang.Boolean" default="false"/>    
@@ -134,6 +135,7 @@
         <c:set value="#{cc.attrs.rows}" property="tableRows" target="#{cc.attrs.controller}"/>
         <p:dataTable id="entity_table"
                      var="entity"
+                     styleClass="#{cc.attrs.tableClass}"
                      value="#{cc.attrs.controller.dataModel}" 
                      widgetVar="entity_tableTable"
                      rows="#{cc.attrs.controller.tableRows}"
