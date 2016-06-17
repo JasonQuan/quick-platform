@@ -161,7 +161,7 @@
                      rowsPerPageTemplate="#{cc.attrs.rowsPerPageTemplate}"
                      >
             <f:facet name="{Exporters}">
-                <div style="float:left;">
+                <div class="dynamic_table_option" style="float:left;">
                     <c:if test="#{cc.attrs.freezeColumns > 0}">
                         <h:outputText value="Freeze Columns:" />
                         <h:selectOneMenu value="#{cc.attrs.controller.freezeColumns}" id='baseDynamicColumnsFreezeSize'>
@@ -209,7 +209,7 @@
                 <h:inputHidden rendered="#{cc.attrs.resizableColumns}" value="newWidth" id="newWidth"/>
             </f:facet>
             <f:facet name="{GlobalFilter}">
-                <h:panelGroup style="float:right;">
+                <h:panelGroup class="dynamic_table_option" style="float:right;">
                     <c:if test="#{cc.attrs.globalFilter}">
                         <!--TODO: searche event-->
                         <p:inputText id="extGlobalFilter" onkeypress="if (event.keyCode === 13) {

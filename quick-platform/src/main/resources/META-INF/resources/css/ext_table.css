@@ -4,6 +4,9 @@
 .dynamicDataTable th,.dynamicDataTable td{
     font-family: "Microsoft Yahei", Arial !important;
 }
+.dynamicDataTable .dynamic_table_option{
+   height: 20px;
+}
 
 .app_content {
     border: 0;
