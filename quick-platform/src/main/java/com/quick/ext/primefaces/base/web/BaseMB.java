@@ -878,8 +878,8 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
 
     public DualListModel<BaseColumnModel> getAdvancedSelectColumns() {
 //		if (advancedSelectColumns == null) {
-        List<BaseColumnModel> source = new ArrayList<BaseColumnModel>();
-        List<BaseColumnModel> target = new ArrayList<BaseColumnModel>();
+        List<BaseColumnModel> source = new ArrayList<>();
+        List<BaseColumnModel> target = new ArrayList<>();
         if (allColumns == null) {
             allColumns = getAllColumns();
         }
@@ -907,19 +907,21 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      */
     public void updateAdvancedColumns() {
         List<BaseColumnModel> source = advancedSelectColumns.getSource();
+        List<BaseColumnModel> updateItems = new ArrayList();
         for (int i = 0; i < source.size(); i++) {
             BaseColumnModel o = source.get(i);
             o.setSort(i);
             o.setVisible(true);
-            columnModelDao.update(o);
         }
+        updateItems.addAll(source);
         List<BaseColumnModel> target = getAdvancedSelectColumns().getTarget();
         for (int i = 0; i < target.size(); i++) {
             BaseColumnModel o = target.get(i);
             o.setSort(999);
             o.setVisible(false);
-            columnModelDao.update(o);
         }
+        updateItems.addAll(target);
+        columnModelDao.updates(updateItems);
         initViewColums();
         // if update sucess
         // this.columns = selectColumns;
@@ -1083,7 +1085,6 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         styleHeader.setAlignment(CellStyle.ALIGN_CENTER);
         styleHeader.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         styleHeader.setWrapText(true);
-        
 
         XSSFCellStyle sheetStyle = wb.createCellStyle();
         sheetStyle.setAlignment(CellStyle.ALIGN_CENTER);

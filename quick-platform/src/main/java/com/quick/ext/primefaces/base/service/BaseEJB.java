@@ -55,6 +55,8 @@ import static java.util.Arrays.sort;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.interceptor.Interceptors;
+import javax.persistence.EntityTransaction;
+import org.apache.commons.beanutils.BeanUtils;
 
 /**
  * @TODO: check why lost generic paradigm if using Inject in the jar
@@ -76,8 +78,8 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         entityClass = (Class<T>) ObjectUtil.getSuperClassGenricType(getClass(), 0);
         voClass = (Class<E>) ObjectUtil.getSuperClassGenricType(getClass(), 1);
     }
-    
-    public final Class<T> getEntityClass(){
+
+    public final Class<T> getEntityClass() {
         return entityClass;
     }
 
@@ -172,9 +174,10 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             return outMessage;
         }
         try {
-            getEntityManager().getTransaction().begin();
+            EntityTransaction transaction = getEntityManager().getTransaction();
+            transaction.begin();
             getEntityManager().persist(t);
-            getEntityManager().getTransaction().commit();
+            transaction.commit();
             logger.info("[create]:" + t);
         } catch (Exception e) {
             logger.error(e);
@@ -193,11 +196,12 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     public int excuteUpdateNativeSql(String sql) {
         int outcome = 0;
         try {
-            getEntityManager().getTransaction().begin();
+            EntityTransaction transaction = getEntityManager().getTransaction();
+            transaction.begin();
             Query q = getEntityManager().createNativeQuery(sql);
             logger.debug("excuteUpdateNativeSql " + sql);
             outcome = q.executeUpdate();
-            getEntityManager().getTransaction().commit();
+            transaction.commit();
             return outcome;
         } catch (IllegalStateException e) {
             // TODO: details
@@ -828,6 +832,29 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         return outMessage;
     }
 
+    public FacesMessage updates(List<T> ts) {
+        FacesMessage outMessage = new FacesMessage(MessageBundle.UPDATE);
+        outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
+        outMessage.setDetail(MessageBundle.SUCCESS);
+        if (ts == null) {
+            return outMessage;
+        }
+        try {
+            EntityTransaction transaction = getEntityManager().getTransaction();
+            transaction.begin();
+            for (T t : ts) {
+                T newT = getEntityManager().merge(t);
+                BeanUtils.copyProperties(t, newT);
+            }
+            transaction.commit();
+        } catch (Exception ex) {
+            logger.error(ex);
+            outMessage.setSeverity(FacesMessage.SEVERITY_ERROR);
+            outMessage.setDetail(MessageBundle.FAILURE);
+        }
+        return outMessage;
+    }
+
     public FacesMessage update(T t) {
         FacesMessage outMessage = updateCondition(t);
         if (outMessage != null) {
@@ -850,9 +877,11 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             // } else {
 
             // t.setUpdateTime(new Date());
-            getEntityManager().getTransaction().begin();
-            getEntityManager().merge(t);
-            getEntityManager().getTransaction().commit();
+            EntityTransaction transaction = getEntityManager().getTransaction();
+            transaction.begin();
+            T newT = getEntityManager().merge(t);
+            BeanUtils.copyProperties(t, newT);
+            transaction.commit();
 
             afterUpdate(t);
             logger.info("[update]" + t);
@@ -866,7 +895,6 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         } catch (Exception e) {
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             outMessage.setDetail(MessageBundle.EXCEPTION);
-
             logger.error(e);
         } finally {
             // if (getEntityManager() != null && getEntityManager().isOpen()) {
@@ -1798,7 +1826,8 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     public void updateOtherEntity(Class<? extends AbstractEntity> t) {
         try {
             getEntityManager().getTransaction().begin();
-            getEntityManager().merge(t);
+            Class<?> newT = getEntityManager().merge(t);
+            BeanUtils.copyProperties(t, newT);
             getEntityManager().getTransaction().commit();
         } catch (Exception ex) {
             Logger.getLogger(BaseEJB.class.getName()).log(Level.SEVERE, null, ex);
