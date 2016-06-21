@@ -1,0 +1,144 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:cc="http://java.sun.com/jsf/composite"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:b="http://java.sun.com/jsf/composite/b">
+    <cc:interface>
+        <!--TODO: Drag sort 20130906       -->
+        <!--TODO: confirm delete 20130906       -->
+        <cc:attribute name="items"/>
+        <cc:attribute name="edit" default="false"/>
+        <cc:attribute name="delete" default="false"/>
+        <cc:attribute name="updateId" default="@this"/>
+        <cc:attribute name="expanded" type="java.lang.Boolean" default="false" displayName="是否展开，默认false"/>        
+    </cc:interface>
+
+    <cc:implementation>
+        <b:addNood rendered="#{baseCategoryBean.isEmpty and cc.attrs.edit}"/>
+        <h:form>
+            <p:growl id="growl" showDetail="true" showSummary="true"/>
+            <p:contextMenu for="docs" rendered="#{cc.attrs.edit}">                  
+                <p:menuitem value="#{msgs.add} #{msgs.same} #{msgs.node}" process="docs,@this"
+                            actionListener="#{baseCategoryBean.reset()}" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="#{msgs.add} #{msgs.sub} #{msgs.node}" process="docs,@this"
+                            actionListener="#{baseCategoryBean.reset()}" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="Edit" process="docs,@this" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="${baseCategoryBean.entity}" value="#{baseCategoryBean.selectNode.data}"/>
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="Delete" process="docs,@this" 
+                            rendered="#{cc.attrs.delete}"
+                            actionListener="#{baseCategoryBean.removeNode()}" update="growl,docs" icon="ui-icon-close"/>  
+            </p:contextMenu>              
+            <p:treeTable id="docs"
+                         value="#{baseCategoryBean.getAllTreeNode(cc.attrs.expanded)}" 
+                         selectionMode="single" editable="#{cc.attrs.edit}"                       
+                         selection="#{baseCategoryBean.selectNode}"
+                         var="tree">
+                <p:ajax event="cellEdit" listener="#{baseCategoryBean.onCellEdit}" update="#{cc.attrs.updateId}" />
+                <p:column headerText="name" width="100">
+                    <p:cellEditor>
+                        <f:facet name="output"><h:outputText value="#{tree.name}" /></f:facet>
+                        <f:facet name="input"><p:inputText value="#{tree.name}" style="width:100%"/></f:facet>
+                    </p:cellEditor>
+                </p:column>
+                <p:column headerText="target">
+                    ${tree.target}
+                </p:column>
+                <p:column headerText="url">
+                    ${tree.url}
+                </p:column>
+                <p:column headerText="disabled">
+                    ${tree.disabled}
+                </p:column>
+                <p:column headerText="action">
+                    ${tree.action}
+                </p:column>
+                <p:column headerText="actionListener">
+                    ${tree.actionListener}
+                </p:column>
+                <p:column headerText="update">
+                    ${tree.updateRender}
+                </p:column>
+                <p:column headerText="process">
+                    ${tree.process}
+                </p:column>
+                <p:column headerText="ajax">
+                    ${tree.ajax}
+                </p:column>
+                <p:column headerText="remark">
+                    ${tree.remark}
+                </p:column>
+                <p:column headerText="sort">
+                    ${tree.sort}
+                </p:column>
+            </p:treeTable>
+            <h:panelGrid id="dialog">
+                <p:dialog visible="#{viewScope.editDialog}" header="#{msgs.node} #{msgs.operating}">
+                    <h:panelGrid id="editDialog">
+                        <b:input idd="id_name_base" label="name" value="#{baseCategoryBean.entity.name}" required="true"/>
+                        <b:input idd="id_name_url" label="url" value="#{baseCategoryBean.entity.url}"/>
+                        <b:input idd="id_name_target" label="target" value="#{baseCategoryBean.entity.target}"/>
+                        <b:selectBooleanCheckbox idd="id_name_disabled" label="disabled" value="#{baseCategoryBean.entity.disabled}"/>
+                        <b:input idd="id_name_action" label="action" value="#{baseCategoryBean.entity.action}"/>
+                        <b:input idd="id_name_updateRender" label="update" value="#{baseCategoryBean.entity.updateRender}"/>
+                        <b:input idd="id_name_process" label="process" value="#{baseCategoryBean.entity.process}"/>
+                        <b:input idd="id_name_actionListener" label="actionListener" value="#{baseCategoryBean.entity.actionListener}"/>
+                        <b:selectBooleanCheckbox idd="id_name_ajax" label="ajax" value="#{baseCategoryBean.entity.ajax}"/>
+                        <b:input idd="id_name_sort" label="sort" value="#{baseCategoryBean.entity.sort}"/>
+                        <b:input idd="id_name_leave" label="leave" value="#{baseCategoryBean.entity.leave}"/>
+                        <b:input idd="id_name_remark" label="remark" value="#{baseCategoryBean.entity.remark}"/>
+                    </h:panelGrid>
+
+                    <f:facet name="footer">
+                        <center>
+                            <p:commandButton 
+                                value="#{msgs.update}"
+                                update="@form"
+                                process="editDialog,@this"
+                                rendered="#{viewScope.edit}"
+                                action="#{baseCategoryBean.editNode()}"/>
+                            <p:commandButton 
+                                value="#{msgs.create}"
+                                update="@form"
+                                rendered="#{viewScope.addSame}"
+                                action="#{baseCategoryBean.addSameNode()}"/>
+                            <p:commandButton 
+                                value="#{msgs.create}"
+                                update="@form"
+                                rendered="#{viewScope.addSub}"
+                                action="#{baseCategoryBean.addSubNode()}"/>
+
+                            <p:commandButton value="#{msgs.cancel}"
+                                             update="@form"
+                                             process="@this"
+                                             action="#{baseCategoryBean.reset()}">
+                                <f:setPropertyActionListener target="#{viewScope.editDialog}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                                <p:resetInput target="editDialog"/>
+                            </p:commandButton>
+                        </center>
+                    </f:facet>
+                </p:dialog>    
+            </h:panelGrid>
+        </h:form>
+    </cc:implementation>
+</ui:composition>

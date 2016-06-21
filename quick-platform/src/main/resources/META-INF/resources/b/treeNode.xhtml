@@ -1,0 +1,102 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:cc="http://java.sun.com/jsf/composite"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:b="http://java.sun.com/jsf/composite/b">
+    <cc:interface>
+        <cc:attribute name="edit" type="java.lang.Boolean" default="false"/>
+        <cc:attribute name="lazy" type="java.lang.Boolean" default="false" displayName="此功能没有实现，有时间再增加动态加载功能"/>
+        <cc:attribute name="expanded" type="java.lang.Boolean" default="false" displayName="是否展开，默认false"/>
+    </cc:interface>
+
+    <cc:implementation>
+        <b:addNood rendered="#{baseCategoryBean.isEmpty and cc.attrs.edit}"/>
+        <h:form>
+            <p:growl id="growl" showDetail="true" showSummary="true"/>
+            <p:contextMenu for="docs" rendered="#{cc.attrs.edit}">                  
+                <p:menuitem value="#{msgs.add} #{msgs.same} #{msgs.node}" process="docs,@this"
+                            actionListener="#{baseCategoryBean.reset()}" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="#{msgs.add} #{msgs.sub} #{msgs.node}" process="docs,@this"
+                            actionListener="#{baseCategoryBean.reset()}" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="Edit" process="docs,@this" update="growl,docs,dialog,editDialog" icon="ui-icon-close">
+                    <f:setPropertyActionListener target="${baseCategoryBean.entity}" value="#{baseCategoryBean.selectNode.data}"/>
+                    <f:setPropertyActionListener target="#{viewScope.editDialog}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.edit}" value="true"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                    <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                </p:menuitem>
+                <p:menuitem value="Delete" process="docs,@this" actionListener="#{baseCategoryBean.removeNode()}" update="growl,docs" icon="ui-icon-close"/>  
+            </p:contextMenu>              
+
+            <p:tree value="#{baseCategoryBean.getAllTreeNode(cc.attrs.expanded)}" var="node" id="docs" 
+                    selectionMode="single"  
+                    selection="#{baseCategoryBean.selectNode}"
+                    dynamic="true"
+                    animate="true">  
+                <p:treeNode>  
+                    <p:commandLink action="#{node.url}" target="#{node.target}">
+                        <h:outputText value="#{node.name}"/>  
+                    </p:commandLink>
+                </p:treeNode>  
+            </p:tree>        
+            <h:panelGrid id="dialog">
+                <p:dialog visible="#{viewScope.editDialog}" header="#{msgs.node} #{msgs.operating}">
+                    <h:panelGrid id="editDialog">
+                        <b:input idd="id_name_base" label="name" value="#{baseCategoryBean.entity.name}" required="true"/>
+                        <b:input idd="id_name_url" label="url" value="#{baseCategoryBean.entity.url}" required="true"/>
+                        <b:input idd="id_name_target" label="target" value="#{baseCategoryBean.entity.target}"/>
+                        <b:selectBooleanCheckbox idd="id_name_disabled" label="disabled" value="#{baseCategoryBean.entity.disabled}"/>
+                        <b:input idd="id_name_action" label="action" value="#{baseCategoryBean.entity.action}"/>
+                        <b:input idd="id_name_actionListener" label="actionListener" value="#{baseCategoryBean.entity.actionListener}"/>
+                        <b:selectBooleanCheckbox idd="id_name_ajax" label="ajax" value="#{baseCategoryBean.entity.ajax}"/>
+                        <b:input idd="id_name_sort" label="sort" value="#{baseCategoryBean.entity.sort}"/>
+                        <b:input idd="id_name_remark" label="remark" value="#{baseCategoryBean.entity.remark}"/>
+                    </h:panelGrid>
+
+                    <f:facet name="footer">
+                        <center>
+                            <p:commandButton 
+                                value="#{msgs.update}"
+                                update="@form"
+                                rendered="#{viewScope.edit}"
+                                action="#{baseCategoryBean.editNode()}"/>
+                            <p:commandButton 
+                                value="#{msgs.create}"
+                                update="@form"
+                                rendered="#{viewScope.addSame}"
+                                action="#{baseCategoryBean.addSameNode()}"/>
+                            <p:commandButton 
+                                value="#{msgs.create}"
+                                update="@form"
+                                rendered="#{viewScope.addSub}"
+                                action="#{baseCategoryBean.addSubNode()}"/>
+
+                            <p:commandButton value="#{msgs.cancel}"
+                                             update="@form"
+                                             process="@this"
+                                             action="#{baseCategoryBean.reset()}">
+                                <f:setPropertyActionListener target="#{viewScope.editDialog}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.addSame}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.addSub}" value="false"/>
+                                <f:setPropertyActionListener target="#{viewScope.edit}" value="false"/>
+                            </p:commandButton>
+                        </center>
+                    </f:facet>
+                </p:dialog>    
+            </h:panelGrid>
+        </h:form>        
+    </cc:implementation>
+</ui:composition>

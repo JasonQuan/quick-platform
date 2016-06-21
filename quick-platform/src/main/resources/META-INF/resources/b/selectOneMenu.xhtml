@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:cc="http://java.sun.com/jsf/composite"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <cc:interface         
+        shortDescription="table column 3, lable, value, message. only in panelGrid">
+
+        <cc:attribute name="idd" required="true" shortDescription="id"/>        
+        <cc:attribute name="value" required="true"/>
+        <cc:attribute name="required" default="false"/>
+        <cc:attribute name="readOnly" default="false"/>
+        <cc:attribute name="disabled" default="false"/>
+        <cc:attribute name="label" required="true"/>
+        <cc:attribute name="escape" default="true"/>
+        <cc:attribute name="tips" shortDescription="input tips,输入提示"/>
+        <cc:attribute name="converter" rendered="#{cc.attrs.type eq 'select'}" 
+                      shortDescription="only for select type, important"/>
+    </cc:interface>
+    <cc:implementation> 
+        <tr>
+            <td>
+                <p:outputLabel 
+                    style="border: none!important;white-space: nowrap;"
+                    value="#{cc.attrs.label}" 
+                    for="#{cc.attrs.idd}"/>
+            </td>
+            <td>
+                <h:selectOneMenu
+                    id="#{cc.attrs.idd}"                    
+                    value="#{cc.attrs.value}"    
+                    readonly="#{cc.attrs.readOnly}"
+                    disabled="#{cc.attrs.disabled}"
+                    converter="#{cc.attrs.converter}"                    
+                    required="#{cc.attrs.required}">                   
+                    <cc:insertChildren />
+                </h:selectOneMenu>
+            </td>
+
+            <td style="position: relative;white-space: nowrap;">
+                <div style="float: left;margin-left: 6px;">
+                    <h:outputText value="#{empty cc.attrs.tips ? '&nbsp;' : cc.attrs.tips}"/>
+                </div>
+                <div style="position: absolute;margin-top: 0;">                    
+                    <p:message for="#{cc.attrs.idd}"/>
+                </div>             
+            </td>
+        </tr>
+    </cc:implementation>
+</html>

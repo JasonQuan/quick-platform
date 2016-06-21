@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 import javax.interceptor.Interceptors;
 import javax.persistence.EntityTransaction;
 import org.apache.commons.beanutils.BeanUtils;
+import static java.util.Arrays.sort;
 
 /**
  * @TODO: check why lost generic paradigm if using Inject in the jar
@@ -1146,6 +1147,34 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             TypedQuery<T> q = createQuery(sql, entityClass);
             q.setParameter("data", data);
             return q.getSingleResult();
+        } catch (NoResultException e) {
+            // logger.error(e, sql);
+        } catch (NonUniqueResultException e) {
+            // TODO: check newInstance
+            // return entityClass.newInstance();
+            logger.error(sql, e);
+        } catch (Exception e) {
+            logger.error(sql, e);
+        }
+        return null;
+    }
+
+    public List<T> findByFields(Map<String, Object> params) {
+        StringBuffer sql = new StringBuffer("SELECT o FROM " + entityClass.getSimpleName() + " o WHERE 1=1 ");
+        try {
+            if (params == null || params.isEmpty()) {
+                throw new NullPointerException("query parameter cannot be null or empty.");
+            }
+            for (String field : params.keySet()) {
+                sql.append(" and o.").append(field).append(" = :").append(field);
+            }
+
+            TypedQuery<T> q = createQuery(sql.toString(), entityClass);
+            for (String field : params.keySet()) {
+                q.setParameter(field, params.get(field));
+            }
+
+            return q.getResultList();
         } catch (NoResultException e) {
             // logger.error(e, sql);
         } catch (NonUniqueResultException e) {

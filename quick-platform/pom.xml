@@ -98,6 +98,12 @@
             <version>1.7.0</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>5.1.3.Final</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <build>

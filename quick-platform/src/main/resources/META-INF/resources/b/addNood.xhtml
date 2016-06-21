@@ -1,0 +1,34 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:cc="http://java.sun.com/jsf/composite"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:b="http://java.sun.com/jsf/composite/b">
+    <cc:interface>
+        <cc:attribute name="items"/>
+    </cc:interface>
+
+    <cc:implementation>
+        <h:form>
+            <h:panelGrid columns="2">
+                <f:facet name="header">add first node</f:facet>
+                <b:input idd="id_name_base" label="name" value="#{baseCategoryBean.entity.name}"/>
+                <b:input idd="id_name_url" label="url" value="#{baseCategoryBean.entity.url}"/>
+                <b:input idd="id_name_target" label="target" value="#{baseCategoryBean.entity.target}"/>
+                <b:selectBooleanCheckbox idd="id_name_disabled" label="disabled" value="#{baseCategoryBean.entity.disabled}"/>
+                <b:selectOneMenu idd="id_name_parent" label="parent" rendered="false"
+                                 value="#{baseCategoryBean.entity.parentCategory}"
+                                 converter="#{baseCategoryBean.converter}">
+                    <f:selectItems value="#{baseCategoryBean.selectItems(true)}"/>
+                </b:selectOneMenu>
+                
+                <p:commandButton 
+                    value="create"
+                    update="@form"
+                    process="@form"
+                    action="#{baseCategoryBean.create()}"/>
+            </h:panelGrid>
+        </h:form>
+    </cc:implementation>
+</ui:composition>

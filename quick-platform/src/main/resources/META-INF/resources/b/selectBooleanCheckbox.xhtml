@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:cc="http://java.sun.com/jsf/composite"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:h="http://java.sun.com/jsf/html">
+
+    <cc:interface         
+        shortDescription="table column 3, lable, value, message. only in panelGrid">
+
+        <cc:attribute name="idd" required="true" shortDescription="id"/>        
+        <cc:attribute name="value" required="true"/>
+        <cc:attribute name="required" default="false"/>
+        <cc:attribute name="readOnly" default="false"/>
+        <cc:attribute name="disabled" default="false"/>
+        <cc:attribute name="label" required="true"/>
+        <cc:attribute name="escape" default="true"/>
+        <cc:attribute name="title"/>
+        <cc:attribute name="tips" shortDescription="input tips,输入提示"/>
+    </cc:interface>
+    <cc:implementation> 
+        <tr>
+            <td>
+                <p:outputLabel 
+                    style="border: none!important;white-space: nowrap;"
+                    value="#{cc.attrs.label}" 
+                    for="#{cc.attrs.idd}"/>
+            </td>
+            <td>
+                <h:selectBooleanCheckbox
+                    title="#{cc.attrs.title}"
+                    id="#{cc.attrs.idd}"                    
+                    readonly="#{cc.attrs.readOnly}"
+                    disabled="#{cc.attrs.disabled}"
+                    value="#{cc.attrs.value}">
+                </h:selectBooleanCheckbox>
+            </td>
+
+            <td style="position: relative;white-space: nowrap;">
+                <div style="float: left;margin-left: 6px;">
+                    <h:outputText value="#{empty cc.attrs.tips ? '&nbsp;' : cc.attrs.tips}"/>
+                </div>
+                <div style="position: absolute;margin-top: 0;">                    
+                    <p:message for="#{cc.attrs.idd}"/>
+                </div>             
+            </td>
+        </tr>
+    </cc:implementation>
+</html>

@@ -4,3 +4,4 @@
 4. javascript,heml5 json
 5. off-line data
 6. cluster cache
+7. why not using cdi, the reason is missing generic paradigm is the beans class in a jar

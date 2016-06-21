@@ -11,6 +11,16 @@
         <exception-handler-factory>com.quick.ext.primefaces.base.web.ViewExpriedExceptionHandlerImpl</exception-handler-factory>
     </factory>
     <application>
+        <locale-config>
+            <default-locale>en</default-locale>
+            <supported-locale>zh</supported-locale>
+            <supported-locale>en</supported-locale>
+        </locale-config>
+        <resource-bundle>
+            <base-name>resources.messages</base-name>
+            <var>msgs</var>
+        </resource-bundle>
+        <message-bundle>resources.messages</message-bundle>        
         <el-resolver>com.quick.ext.primefaces.base.web.DynamicDataTableExtendBeanElResolver</el-resolver>
         <resource-handler>com.quick.ext.primefaces.base.web.FaceletsResourcesResolver</resource-handler>
         <action-listener>org.primefaces.application.DialogActionListener</action-listener>
