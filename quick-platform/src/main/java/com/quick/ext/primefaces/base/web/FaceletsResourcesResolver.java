@@ -55,4 +55,4 @@ public class FaceletsResourcesResolver extends ResourceHandlerWrapper {
         return resource;
     }
 
-}
+    }

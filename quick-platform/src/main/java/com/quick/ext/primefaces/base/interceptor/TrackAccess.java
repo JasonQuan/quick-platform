@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.quick.ext.primefaces.base.interceptor;
 
 import static java.lang.annotation.ElementType.METHOD;
@@ -12,5 +17,6 @@ import javax.interceptor.InterceptorBinding;
 @InterceptorBinding
 @Retention(RUNTIME)
 @Target({METHOD, TYPE})
-public @interface AccessLogInterceptor {
+public @interface TrackAccess {
+    
 }

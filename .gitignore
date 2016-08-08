@@ -1,0 +1,11 @@
+/epub-converter/target/
+/quick-platform/target/
+/SampleCRUDApp/nbproject/private/
+/SampleCRUDApp/build/
+/SampleCRUDApp/CustomerDBAccessLibrary/build/
+/SampleCRUDApp/CustomerDBAccess/build/
+/SampleCRUDApp/CustomerDBAccessLibrary/nbproject/private/
+/SampleCRUDApp/CustomerViewer/nbproject/private/
+/SampleCRUDApp/derbyclient-library/nbproject/private/
+/SampleCRUDApp/CustomerEditor/nbproject/private/
+/SampleCRUDApp/CustomerDBAccess/nbproject/private/
