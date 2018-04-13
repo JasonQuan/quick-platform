@@ -197,6 +197,11 @@ public class ObjectUtil {
         String methodName = start + toUpperCase(filedName);
         return methodName;
     }
+    public static String getSetMethodNameByFiledName(String filedName) {
+        String start = "get";
+        String methodName = start + toUpperCase(filedName);
+        return methodName;
+    }
 
     /**
      * 通过表列名得到实体方法名
@@ -418,7 +423,8 @@ public class ObjectUtil {
                         || fieldse.getAnnotation(Lob.class) != null || fieldse.getType().getName().equals(List.class.getName())) {
                     continue;
                 }
-                if (fieldse.getType().getSuperclass() == AbstractEntity.class) {
+                //if (fieldse.getType().getSuperclass()) {
+                if (fieldse.getType().getSuperclass() == AbstractEntity.class && cla != fieldse.getType()) {//fix StackOverFlowError
                     outcome.putAll(getEntityFieldWithTableColumn(field + ".", fieldse.getType()));
                     continue;
                 }

@@ -58,6 +58,9 @@ import javax.interceptor.Interceptors;
 import javax.persistence.EntityTransaction;
 import org.apache.commons.beanutils.BeanUtils;
 import static java.util.Arrays.sort;
+import javax.persistence.EntityExistsException;
+import javax.persistence.RollbackException;
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
  * @TODO: check why lost generic paradigm if using Inject in the jar
@@ -71,7 +74,7 @@ import static java.util.Arrays.sort;
 @Interceptors(TrackInterceptor.class)
 public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
-    protected final BaseLogger logger = new BaseLogger(this.getClass());
+    protected final BaseLogger logger = new BaseLogger(BaseEJB.class);
     private final Class<T> entityClass;
     private final Class<E> voClass;
 
@@ -103,7 +106,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param t entity
      * @return String column data
      */
-    private String validationUniqueColumn(T t) {
+    private <X extends AbstractEntity> String validationUniqueColumn(X t) {
         if (t == null) {
             return null;
         }
@@ -194,32 +197,23 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param sql native sql
      * @return the number of entities updated or deleted
      */
-    public int excuteUpdateNativeSql(String sql) {
+    public int excuteUpdateNativeSql(String sql) throws Exception {
         int outcome = 0;
         try {
             EntityTransaction transaction = getEntityManager().getTransaction();
-            transaction.begin();
+            if (!transaction.isActive()) {
+                transaction.begin();
+            }
             Query q = getEntityManager().createNativeQuery(sql);
             logger.debug("excuteUpdateNativeSql " + sql);
             outcome = q.executeUpdate();
             transaction.commit();
             return outcome;
-        } catch (IllegalStateException e) {
-            // TODO: details
-            logger.error(e);
-        } catch (QueryTimeoutException e) {
-            logger.error(e);
-        } catch (TransactionRequiredException e) {
-            logger.error(e);
-        } catch (PersistenceException e) {
-            logger.error(e);
         } catch (Exception e) {
-            logger.error(e);
-        } finally {
-            // getEntityManager().close();
+            // TODO: details
+            logger.error("excuteUpdateNativeSql", e);
+            throw e;
         }
-
-        return outcome;
     }
 
     public int queryIntNativeSql(String sql) {// TODO:try
@@ -255,6 +249,30 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     }
 
     /**
+     *
+     * @param <X>
+     * @param jpql
+     * @param param
+     * @param returnClass
+     * @return
+     */
+    public <X> X getSingleByJpqlQuery(String jpql, Map<String, Object> param, Class<X> returnClass) {
+        try {
+            TypedQuery<X> q = getEntityManager().createQuery(jpql, returnClass);
+            for (Entry<String, Object> entry : param.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                q.setParameter(key, value);
+            }
+            return q.getSingleResult();
+        } catch (Exception e) {
+            logger.error(e);
+        }
+
+        return null;
+    }
+
+    /**
      * id type only: Integer,String,Long
      *
      *
@@ -265,7 +283,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         // TODO: lock result
         try {
             if (id != null && !"".equals(id)) {
-
+                //TODO: some times find data is not latest such as when tirgger colums visible or not
                 T t = getEntityManager().find(entityClass, id);
 
                 return t;
@@ -358,9 +376,62 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         } catch (IllegalArgumentException e) {
             logger.error(e);
         } catch (Exception e) {
+            logger.error("findSingle: " + sql);
             logger.error(e);
         }
         return null;
+    }
+
+    /**
+     *
+     * @param <X> generic
+     * @param jpql JPQL
+     * @param params Map<String,Object> jpql conidition,value
+     * @param x return type
+     * @return X
+     */
+    public <X> X findSingle(String jpql, Map<String, Object> params, Class<X> x) throws NoResultException {
+        try {
+            TypedQuery<X> q = getEntityManager().createQuery(jpql, x);
+            if (params != null) {
+                for (Entry<String, Object> entry : params.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    q.setParameter(key, value);
+                }
+            }
+            return q.getSingleResult();
+        } catch (NoResultException e) {
+            throw e;
+        } catch (IllegalArgumentException e) {
+            logger.error(e);
+        } catch (Exception e) {
+            logger.error("findSingle: " + jpql);
+            logger.error("findSingle: " + params);
+            logger.error(e);
+        }
+        return null;
+    }
+
+    public <X> List<X> findList(String jpql, Map<String, Object> params, Class<X> x) {
+        try {
+            TypedQuery<X> q = getEntityManager().createQuery(jpql, x);
+            if (params != null) {
+                for (Entry<String, Object> entry : params.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    q.setParameter(key, value);
+                }
+            }
+            return q.getResultList();
+        } catch (IllegalArgumentException e) {
+            logger.error(e);
+        } catch (Exception e) {
+            logger.error("findList: " + jpql);
+            logger.error("findList: " + params);
+            logger.error(e);
+        }
+        return new ArrayList<>();
     }
 
     private String exportAllLazyDataModelJpql;
@@ -474,16 +545,16 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
                 jpql = "SELECT COUNT(1) FROM " + jpql.split("FROM")[1];
                 jpql = formatJPQL(filters, jpql);
                 Query q = createQuery(jpql);
-                logger.debug("jpql find by condition row count====>>>>" + jpql.toString());
-//                if (null != jpqlParametersKeyValue && jpqlParametersKeyValue.size() > 0) {
-//                    Iterator<Entry<String, Object>> paras = jpqlParametersKeyValue.entrySet().iterator();
-//                    while (paras.hasNext()) {
-//                        Entry<String, Object> e = paras.next();
-//                        String key = e.getKey();
-//                        Object value = e.getValue();
-//                        q.setParameter(key, value);
-//                    }
-//                }
+                logger.debug("jpql find by condition row count====>>>>" + jpql);
+                if (null != jpqlParametersKeyValue && jpqlParametersKeyValue.size() > 0) {
+                    Iterator<Entry<String, Object>> paras = jpqlParametersKeyValue.entrySet().iterator();
+                    while (paras.hasNext()) {
+                        Entry<String, Object> e = paras.next();
+                        String key = e.getKey();
+                        Object value = e.getValue();
+                        q.setParameter(key, value);
+                    }
+                }
                 return Integer.parseInt(q.getSingleResult().toString());
             } else {
                 String sql = formatVOSql(filters, jpql).insert(0, "select count(*) ").toString();
@@ -665,17 +736,18 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param t entity
      * @return FacesMessage
      */
-    protected FacesMessage removeCondition(T t) {
+    protected FacesMessage removeCondition(Object t) {
         return null;
     }
 
     /**
      * 添加更新条件
      *
-     * @param t entity
+     * @param <X>
+     * @param x entity
      * @return FacesMessage
      */
-    protected FacesMessage updateCondition(T t) {
+    protected <X extends AbstractEntity> FacesMessage updateCondition(X x) {
         return null;
     }
 
@@ -768,8 +840,13 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             // }
             // }
             // }
-            getEntityManager().remove(getEntityManager().merge(t));
-
+            EntityManager em = getEntityManager();
+            EntityTransaction tx = em.getTransaction();
+            if (!tx.isActive()) {
+                tx.begin();
+            }
+            em.remove(em.merge(t));
+            tx.commit();
             logger.info("[remove]:" + t);
 
             facesMessage.setSeverity(FacesMessage.SEVERITY_INFO);
@@ -787,7 +864,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         return facesMessage;
     }
 
-    public void afterUpdate(T t) {
+    public <X extends AbstractEntity> void afterUpdate(X x) {
     }
 
     /**
@@ -812,13 +889,16 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             // String sql = "UPDATE " + getTableName() + " SET " + column + " = '" +
             // value + "' WHERE ID = '" + id + "'";
             // int count = excuteNativeSql(sql);
-
-            Query query = getEntityManager().createQuery("UPDATE " + entityClass.getSimpleName() + " o SET o." + field + " = :field WHERE o.id = :id ");
+            EntityManager em = getEntityManager();
+            Query query = em.createQuery("UPDATE " + entityClass.getSimpleName() + " o SET o." + field + " = :field WHERE o.id = :id ");
             query.setParameter("field", value);
             query.setParameter("id", id);
-            getEntityManager().getTransaction().begin();
+            EntityTransaction tx = em.getTransaction();
+            if (!tx.isActive()) {
+                tx.begin();
+            }
             int count = query.executeUpdate();
-            getEntityManager().getTransaction().commit();
+            tx.commit();
 
             if (count == 1) {
                 outMessage.setDetail(MessageBundle.SUCCESS);
@@ -828,41 +908,110 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
                 outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             }
         } catch (Exception ex) {
-            Logger.getLogger(BaseEJB.class.getName()).log(Level.SEVERE, null, ex);
+            logger.error(ex);
         }
         return outMessage;
     }
 
-    public FacesMessage updates(List<T> ts) {
+    /**
+     * 批量新增 保证事务 <br>
+     * 必须先调用 txBegin 结束时调用 txCommit
+     *
+     * @param <X>
+     * @param ts
+     * @return
+     * @throws java.lang.Exception
+     */
+    public <X> void updates(List<X> ts) throws
+            IllegalArgumentException,
+            TransactionRequiredException,
+            Exception {
+        if (ts == null) {
+            return;
+        }
+        for (X t : ts) {
+            X newT = getEntityManager().merge(t);
+            try {
+                PropertyUtils.copyProperties(t, newT);
+            } catch (Exception e) {
+                logger.error("PropertyUtils error: ", e);
+            }
+            //BeanUtils.copyProperties(t, newT);
+        }
+//        getEntityManager().flush();
+    }
+
+    private EntityTransaction transaction;
+
+    /**
+     * 开启事务
+     *
+     * @throws Exception
+     */
+    public void txBegin() throws IllegalStateException,
+            PersistenceException,
+            Exception {
+        if (transaction == null) {
+            transaction = getEntityManager().getTransaction();
+        }
+        if (!transaction.isActive()) {
+            transaction.begin();
+        }
+    }
+
+    /**
+     * 提交事务
+     *
+     * @throws java.lang.Exception
+     */
+    public void txCommit() throws IllegalStateException, RollbackException, Exception {
+        transaction.commit();
+    }
+
+    /**
+     * 事务回滚
+     *
+     * @throws java.lang.Exception
+     */
+    public void txRollback() throws IllegalStateException, PersistenceException, Exception {
+        transaction.rollback();
+    }
+
+    /**
+     * 批量新增 保证事务 <br>
+     * 必须先调用 txBegin 结束时调用 txCommit
+     *
+     * @param <X>
+     * @param ts
+     * @return
+     * @throws java.lang.Exception
+     */
+    public <X> FacesMessage creates(List<X> ts) throws
+            EntityExistsException,
+            IllegalArgumentException,
+            TransactionRequiredException,
+            Exception {
         FacesMessage outMessage = new FacesMessage(MessageBundle.UPDATE);
         outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
         outMessage.setDetail(MessageBundle.SUCCESS);
         if (ts == null) {
             return outMessage;
         }
-        try {
-            EntityTransaction transaction = getEntityManager().getTransaction();
-            transaction.begin();
-            for (T t : ts) {
-                T newT = getEntityManager().merge(t);
-                BeanUtils.copyProperties(t, newT);
-            }
-            transaction.commit();
-        } catch (Exception ex) {
-            logger.error(ex);
-            outMessage.setSeverity(FacesMessage.SEVERITY_ERROR);
-            outMessage.setDetail(MessageBundle.FAILURE);
+        for (X x : ts) {
+            getEntityManager().persist(x);
         }
+        //getEntityManager().flush();
+        logger.debug("[creats]" + ts);
         return outMessage;
     }
 
-    public FacesMessage update(T t) {
-        FacesMessage outMessage = updateCondition(t);
+    public <X extends AbstractEntity> FacesMessage update(X x) {
+        FacesMessage outMessage = updateCondition(x);
         if (outMessage != null) {
             return outMessage;
         }
         outMessage = new FacesMessage(MessageBundle.UPDATE);
-        String message = validationUniqueColumn(t);
+        String message = validationUniqueColumn(x);
         if (message != null) {
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             outMessage.setSummary(MessageBundle.DUPLICATION_OF_DATA);
@@ -879,28 +1028,33 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
 
             // t.setUpdateTime(new Date());
             EntityTransaction transaction = getEntityManager().getTransaction();
-            transaction.begin();
-            T newT = getEntityManager().merge(t);
-            BeanUtils.copyProperties(t, newT);
+            if (!transaction.isActive()) {
+                transaction.begin();
+            }
+            x = getEntityManager().merge(x);
+            //BeanUtils.copyProperties(t, newT);
             transaction.commit();
 
-            afterUpdate(t);
-            logger.info("[update]" + t);
+            afterUpdate(x);
+            logger.info("[update]" + x);
             outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
             outMessage.setDetail(MessageBundle.SUCCESS);
             return outMessage;
             // }
         } catch (IllegalArgumentException e) {
+            //TODO: 临时解决失败后vesion+1
+            if (x.getVersion() != null) {
+                x.setVersion(x.getVersion() - 1);
+            }
             logger.error(e);
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
         } catch (Exception e) {
+            if (x.getVersion() != null) {
+                x.setVersion(x.getVersion() - 1);
+            }
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             outMessage.setDetail(MessageBundle.EXCEPTION);
             logger.error(e);
-        } finally {
-            // if (getEntityManager() != null && getEntityManager().isOpen()) {
-            // getEntityManager().close();
-            // }
         }
         return outMessage;
     }
@@ -1113,6 +1267,22 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
     }
 
+    public <X> List<X> findByField(String column, Object data, Class<X> cls) {
+        if (column == null || "".equals(column) || data == null) {
+            return new ArrayList<>();
+        }
+        String sql = "SELECT o FROM " + cls.getSimpleName() + " o WHERE o." + column + " = '" + data + "'";
+        try {
+            TypedQuery<X> q = createQuery(sql, cls);
+            logger.debug("findByField: " + sql);
+            // q.setParameter("data", data);
+            return q.getResultList();
+        } catch (Exception e) {
+            logger.error(sql, e);
+            return new ArrayList<>();
+        }
+    }
+
     /**
      * createNativeQuery
      *
@@ -1200,6 +1370,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         try {
             Query q = createQuery(sql);
             q.setParameter("data", data);
+            logger.debug("findByColumnAndEntityClass====>" + sql);
             return q.getSingleResult();
         } catch (NoResultException e) {
         } catch (NonUniqueResultException e) {
@@ -1480,6 +1651,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     protected void clearCache() {
         try {
             // getEntityManager().getEntityManager().getCache().evictAll();
+            getEntityManager().clear();
             getEntityManager().getEntityManagerFactory().getCache().evictAll();
         } catch (IllegalStateException e) {
             logger.error(e);
@@ -1527,13 +1699,13 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         return outcome;
     }
 
-    private TypedQuery<T> createQuery(String sql, Class c) {
-        TypedQuery<T> outcome = createQuery(sql, c, null);
+    private <X> TypedQuery<X> createQuery(String sql, Class<X> c) {
+        TypedQuery<X> outcome = createQuery(sql, c, null);
         return outcome;
     }
 
-    private TypedQuery<T> createQuery(String sql, Class c, Map<String, Object> parms) {
-        TypedQuery<T> outcome = null;
+    private <X> TypedQuery<X> createQuery(String sql, Class<X> c, Map<String, Object> parms) {
+        TypedQuery<X> outcome = null;
         try {
             outcome = getEntityManager().createQuery(sql, c);
             if (parms != null && parms.size() > 0) {
@@ -1597,21 +1769,19 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     public FacesMessage removeBatch(List<T> ts) {
         // TODO:i18n message
         FacesMessage outMessage = new FacesMessage();
+        outMessage.setSummary("batch remove");
+        outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
         if (ts.size() < 1 || ts.get(0).getId() == null || ObjectUtil.isEmpty(ts.get(0).getId().toString())) {
-            outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-            outMessage.setSummary("batch remove");
             outMessage.setDetail("remove records is empty");
         } else {
             String sql = "delete from " + getTableName() + " where ID in (" + getInCondation(ts) + ")";
-            int count = excuteUpdateNativeSql(sql);
-            if (count == ts.size()) {
-                outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-                outMessage.setSummary("batch remove");
+            try {
+                int count = excuteUpdateNativeSql(sql);
                 outMessage.setDetail("remove success " + count);
-            } else {
+            } catch (Exception e) {
                 outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
-                outMessage.setSummary("batch remove faild");
-                outMessage.setDetail("remove success " + count);
+                outMessage.setDetail("batch remove faild ");
+                logger.error(e);
             }
         }
         // TODO rowback
@@ -1621,21 +1791,20 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     public FacesMessage removeBatchByIds(List<String> ts) {
         // TODO:i18n message
         FacesMessage outMessage = new FacesMessage();
+        outMessage.setSummary("batch remove");
         if (ts.size() < 1 || ObjectUtil.isEmpty(ts.get(0))) {
             outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-            outMessage.setSummary("batch remove");
             outMessage.setDetail("remove fales id is empty");
         } else {
             String sql = "delete from " + getTableName() + " where ID in (" + getInCondationIds(ts) + ")";
-            int count = excuteUpdateNativeSql(sql);
-            if (count == ts.size()) {
-                outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-                outMessage.setSummary("batch remove");
+            try {
+                int count = excuteUpdateNativeSql(sql);
                 outMessage.setDetail("remove success " + count);
-            } else {
+            } catch (Exception e) {
                 outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
                 outMessage.setSummary("batch remove faild");
-                outMessage.setDetail("remove success " + count);
+                outMessage.setDetail("batch remove faild");
+                logger.error(e);
             }
         }
         // TODO rowback
@@ -1707,10 +1876,27 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
     }
 
-    public List<?> findListByJPQL(String sql, Class<?> cl) {
+    public <X> List<X> findListByJPQL(String sql, Class<X> cl) {
         try {
 
-            TypedQuery<?> createQuery = getEntityManager().createQuery(sql, cl);
+            TypedQuery<X> createQuery = getEntityManager().createQuery(sql, cl);
+            if (createQuery != null) {
+                return createQuery.getResultList();
+            }
+        } catch (Exception e) {
+            logger.error(sql, e);
+        }
+        return java.util.Collections.EMPTY_LIST;
+    }
+
+    public <X> List<X> findListByJPQL(String sql, Class<X> cl, Integer pagesize, Integer pagenumber) {
+        try {
+
+            TypedQuery<X> createQuery = getEntityManager().createQuery(sql, cl);
+            if (pagesize != null && pagenumber != null) {
+                createQuery.setFirstResult(pagenumber);
+                createQuery.setMaxResults(pagesize);
+            }
             if (createQuery != null) {
                 return createQuery.getResultList();
             }
@@ -1745,25 +1931,22 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     public FacesMessage updateField(Object id, String field, Object value) {
         // TODO: validation
         FacesMessage outMessage = new FacesMessage("update");
-        Object object = ObjectUtil.getPropertyType(entityClass, field);
-        if (ObjectUtil.isBoolean(object)) {
-            value = Boolean.valueOf(value.toString());
-        }
-        // TODO: other dataType
-        Query query = getEntityManager().createQuery(
-                "UPDATE " + entityClass.getSimpleName() + " o SET o." + field + " = :field WHERE o." + getIdFieldName() + " = :id");
-        if (ObjectUtil.isDate(object)) {
-            query.setParameter("field", (Date) value, TemporalType.TIMESTAMP);
-        } else {
-            query.setParameter("field", value);
-        }
-
-        query.setParameter("id", id);
-        int count = query.executeUpdate();
-        if (count == 1) {
+        try {
+            T t = getEntityManager().find(entityClass, id);
+            Field cfield = entityClass.getDeclaredField(field);
+            cfield.setAccessible(true);
+            cfield.set(t, value);
+            EntityTransaction tx = getEntityManager().getTransaction();
+            if (!tx.isActive()) {
+                tx.begin();
+            }
+            T merge = getEntityManager().merge(t);
             outMessage.setDetail(MessageBundle.SUCCESS);
             outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-        } else {
+            tx.commit();
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
+            logger.error("updateField error:[" + id + "][" + field + "][" + value + "]");
+            logger.error(e);
             outMessage.setDetail(MessageBundle.FAILURE);
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
         }

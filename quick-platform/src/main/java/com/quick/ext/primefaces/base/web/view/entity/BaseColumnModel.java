@@ -50,6 +50,10 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     @Column(name = "EDIT")
     private Boolean edit;
 
+    @ColumnHelper(sort = 4)
+    @Column(name = "ESCAPE")
+    private Boolean escape = Boolean.TRUE;
+
     @ColumnHelper(sort = 5, editAble = true)
     @Column(name = "CUSTOM_KEY")
     private String customsKey;
@@ -139,7 +143,7 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     private String filterFunction;
     @ColumnHelper
     @Column(name = "PRIORITY")
-    private Boolean priority;
+    private int priority;
     @ColumnHelper
     @Column(name = "SORT_ABLE")
     private Boolean sortable = Boolean.TRUE;
@@ -149,6 +153,9 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     @ColumnHelper
     @Column(name = "VISIBLE")
     private Boolean visible = Boolean.TRUE;
+    @ColumnHelper
+    @Column(name = "GROUPROW")
+    private Boolean groupRow = Boolean.FALSE;
     @ColumnHelper
     @Column(name = "SELECT_ROW")
     private String selectRow;
@@ -476,11 +483,11 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
         this.filterFunction = filterFunction;
     }
 
-    public Boolean getPriority() {
+    public int getPriority() {
         return priority;
     }
 
-    public void setPriority(Boolean priority) {
+    public void setPriority(int priority) {
         this.priority = priority;
     }
 
@@ -979,4 +986,21 @@ public class BaseColumnModel extends AbstractEntity implements Serializable {
     public boolean hasConverterId() {
         return StringUtils.isNotBlank(converterId);
     }
+
+    public Boolean getGroupRow() {
+        return groupRow;
+    }
+
+    public void setGroupRow(Boolean groupRow) {
+        this.groupRow = groupRow;
+    }
+    
+    public Boolean getEscape() {
+        return escape;
+    }
+    
+    public void setEscape(Boolean escape) {
+        this.escape = escape;
+}
+
 }

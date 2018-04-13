@@ -56,6 +56,7 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
      * @return
      */
     public List<BaseColumnModel> getColumnModel(Class<?> cla, String key, String group) {
+        super.clearCache();
         if (key.equals("default")) {
             return getDefaultColumnModel(cla);
         } else {
@@ -97,6 +98,11 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
         return outcome;
     }
 
+    /**
+     * TODO: add converterid for date type
+     * @param cla
+     * @return 
+     */
     private List<BaseColumnModel> initDefaultModel(Class<?> cla) {
         Map<String, BaseKeyValue> fieldMapping = ObjectUtil.getEntityFieldWithTableColumn(cla);
 
@@ -118,6 +124,7 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
                 cm.setConverterId("com.primefaces.ext.converter.BooleanConverter");
             }
             if (cm.getIsDate()) {
+                //TODO: fix to custom converter
                 cm.setConverterId("javax.faces.DateTime");
                 cm.setOutFormat("yyyy/MM/dd HH:mm:ss");
             }
@@ -131,7 +138,7 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
             cm.setEdit(Boolean.TRUE);
             cm.setToggleable(Boolean.TRUE);
             cm.setSort(999);
-
+            cm.setStyleClass(cm.getCustomsKey()+"-"+cm.getField());
             if (fields[i].contains(".")) {
                 cm.setVisible(false);
                 cm.setHeader(cm.getField().substring(0, cm.getField().indexOf(".")) + " " + cm.getHeader());

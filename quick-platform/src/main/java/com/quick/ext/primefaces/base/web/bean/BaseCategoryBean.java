@@ -4,10 +4,14 @@ import com.quick.ext.primefaces.base.util.MessageBundle;
 import com.quick.ext.primefaces.base.web.view.dao.BaseCategoryDao;
 import com.quick.ext.primefaces.base.web.view.entity.Category;
 import com.quick.ext.primefaces.base.web.view.entity.Category_;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import javax.el.ValueExpression;
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+
+import javax.faces.context.FacesContext;
 import javax.persistence.metamodel.SingularAttribute;
 import org.apache.log4j.Logger;
 import org.primefaces.component.menubar.Menubar;
@@ -32,22 +36,86 @@ public class BaseCategoryBean extends BaseController<Category> {
     private TreeNode selectNode;
     private boolean isEmpty;
 
+    /**
+     * demo: data-id field="name"
+     * <p:column headerText="name" style="width:200px;" field="name">
+     * <p:cellEditor data-id="#{tree.id}">
+     * <f:facet name="output"><h:outputText value="#{tree.name}" /></f:facet>
+     * <f:facet name="input"><p:inputText value="#{tree.name}" style="width:100%"/></f:facet>
+     * </p:cellEditor>
+     * </p:column>
+     *
+     * @param event
+     */
     public void onCellEdit(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
-        Map<String, Object> atts = event.getComponent().findComponent("eid").getAttributes();
-        String entityId = atts.get("title").toString();
-        String fieldName = atts.get("styleClass").toString();
         if (newValue != null && !newValue.equals(oldValue)) {
-            dao.update(entityId, fieldName, newValue);
-            MessageBundle.showInfo("Cell Changed");
+            String fieldName = event.getColumn().getCellEditor().getFacet("input").getValueExpression("value").getExpressionString();
+            fieldName = fieldName.substring(fieldName.lastIndexOf(".") + 1, fieldName.length() - 1);
+
+            FacesContext ctx = FacesContext.getCurrentInstance();
+            ValueExpression idExpression = ctx.getApplication().getExpressionFactory().createValueExpression(ctx.getELContext(), "#{tree.id}", String.class);
+            String entityId = idExpression.getValue(ctx.getELContext()).toString();
+
+            logger.debug("call onCellEdit: [" + entityId + "][" + fieldName + "][" + newValue);
+            FacesMessage update = dao().update(entityId, fieldName, newValue);
+            update.setSummary("修改");
+            MessageBundle.autoMessage(update);
+        }
+
+    }
+
+    public void addNode(Category catecory) {
+
+        Category cate = new Category();
+        cate.setParentCategory(catecory);
+        cate.setType(catecory.getType());
+        dao().create(cate);
+        addSubNode(allTreeNode.getChildren(), cate);
+    }
+
+    public void removeNode(Category category) {
+        String[] id = {category.getId().toString()};
+        dao().removeBatchByIds(Arrays.asList(id));
+        BaseCategoryBean.this.removeNode(allTreeNode.getChildren(), category);
+    }
+
+    private void addSubNode(List<TreeNode> nodes, Category categroy) {
+        for (TreeNode node : nodes) {
+            if (((Category) node.getData()).getId().equals(categroy.getParentCategory().getId())) {
+                node.setExpanded(true);
+                node.getChildren().add(new DefaultTreeNode(categroy, node));
+                return;
+            }
+            if (!node.getChildren().isEmpty()) {
+                addSubNode(node.getChildren(), categroy);
+            }
         }
     }
 
-    public TreeNode getAllTreeNode(boolean expanded) {
-        if (allTreeNode == null) {
+    private void removeNode(List<TreeNode> nodes, Category cate) {
+
+        for (TreeNode node : nodes) {
+            if (((Category) node.getData()).getId().equals(cate.getId())) {
+                nodes.remove(node);
+                return;
+            }
+            if (!node.getChildren().isEmpty()) {
+                BaseCategoryBean.this.removeNode(node.getChildren(), cate);
+            }
         }
-        allTreeNode = BaseWebUtils.getAllTreeNodeByCategorys(expanded, new DefaultTreeNode("Root", null), dao().getRootNode());
+    }
+
+    public TreeNode getAllTreeNode(boolean expanded, String type) {
+        if (allTreeNode == null) {
+            allTreeNode = BaseWebUtils.getAllTreeNodeByCategorys(expanded, new DefaultTreeNode("Root", null), dao().getRootNode(type));
+        }
+        return allTreeNode;
+    }
+
+    public TreeNode getAllTreeNode(boolean expanded) {
+        getAllTreeNode(expanded, null);
         return allTreeNode;
     }
 

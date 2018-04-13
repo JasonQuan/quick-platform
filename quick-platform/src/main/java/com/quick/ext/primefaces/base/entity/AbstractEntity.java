@@ -1,5 +1,6 @@
 package com.quick.ext.primefaces.base.entity;
 
+import com.quick.ext.primefaces.base.util.ColumnHelper;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -14,10 +15,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.Version;
+import org.apache.log4j.Logger;
 
-import org.eclipse.persistence.annotations.Cache;
-import org.eclipse.persistence.annotations.CacheType;
-import org.eclipse.persistence.annotations.DatabaseChangeNotificationType;
+import org.eclipse.persistence.annotations.Customizer;
 
 /**
  * TODO:@SqlResultSetMappings<br/>
@@ -32,7 +32,8 @@ import org.eclipse.persistence.annotations.DatabaseChangeNotificationType;
  */
 @MappedSuperclass
 // @EntityListeners(value = { AbstractEntityListeners.class })
-@Cache(databaseChangeNotificationType = DatabaseChangeNotificationType.INVALIDATE, type = CacheType.FULL, size = 999999)
+@Customizer(HistoryCustomizer.class)
+//@Cache(databaseChangeNotificationType = DatabaseChangeNotificationType.INVALIDATE, type = CacheType.FULL, size = 999999)
 public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializable {
 
     @Id
@@ -43,16 +44,23 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
     @Transient
     private Boolean rendered;
 
+    @ColumnHelper(header = "创建人", sort = 1)
     @Column(name = "CREATED_BY")
     private String createdBy;
 
+    @ColumnHelper(header = "创建时间", sort = 1)
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "CREATED_TIME")
     private Date createdTime;
 
+    @ColumnHelper(header = "版本", sort = 1)
     @Version
-    @Column(name = "\"VERSION\"")
+    @Column(name = "\"VERSION\"", columnDefinition = "INT(11) default 0")
     private Integer version;
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     @Override
     public Object getId() {
@@ -111,7 +119,12 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
         }
 
         final BaseEntity other = (BaseEntity) obj;
-        return getId().equals(other.getId());
+        try {
+            return getId().equals(other.getId());
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).error(e);
+            return false;
+        }
     }
 
     @Override
@@ -124,8 +137,16 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
     @Override
     public String toString() {
         Class<?> obj = this.getClass();
-        Field[] fields = obj.getDeclaredFields();
         StringBuffer sb = new StringBuffer(this.getClass().getName()).append("\n[");
+        Field[] superFields = obj.getSuperclass().getDeclaredFields();
+        getSB(superFields, sb);
+        Field[] fields = obj.getDeclaredFields();
+        getSB(fields, sb);
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private StringBuffer getSB(Field[] fields, StringBuffer sb) {
         for (Field field : fields) {
             try {
                 if (field.getAnnotations().length > 0) {
@@ -149,8 +170,7 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
                 e.printStackTrace();
             }
         }
-        sb.append("]");
-        return sb.toString();
+        return sb;
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -168,6 +188,9 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
     }
 
     public Date getCreatedTime() {
+        if (createdTime == null) {
+            createdTime = new Date();
+        }
         return this.createdTime;
     }
 

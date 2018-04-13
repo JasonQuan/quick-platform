@@ -15,13 +15,13 @@ public abstract class QuickDataService<T extends AbstractEntity, E extends Abstr
     private EntityManager em;
 
     @Override
-    protected EntityManager getEntityManager() {
+    public EntityManager getEntityManager() {
         try {
             if (em == null) {
                 em = QuickJpaSPI.getEntityManager().getEntityManager();
             }
         } catch (Exception e) {
-            logger.error("TODO: message");
+            logger.error("call QuickDataService getEntityManager() error");
             logger.error(e);
             throw new RuntimeException();
         }

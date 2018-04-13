@@ -25,7 +25,10 @@
     component:<p:datatable>
     error on: <rows="# { cc.attrs.rows}>
     error message:< rows="# { cc.attrs.rows}": The class 'com.sun.faces.el.CompositeComponentAttributesELResolver$ExpressionEvalMap' does not have the property 'rows'.>
-    error from:<primefaces bug>
+    error from:<primefaces bug>    
+    required : import javax.faces.bean.ViewScoped; if not, the commdantButton not notworking in colum
+    error code parent <f:converter parent="# {column.outFormat}" converterId="# {column.converterId}"/>    
+    grouprow not work, but if remove adjust if it's ok
     -->
     <cc:interface>
         <cc:attribute name="controller" type="com.quick.ext.primefaces.base.web.BaseMB" required="true"/>        
@@ -36,8 +39,10 @@
         <cc:attribute name="deleteRow" type="java.lang.Boolean" default="false"/>    
         <cc:attribute name="removeOnColumn" type="java.lang.Boolean" default="false"/>    
         <cc:attribute name="draggableRows" type="java.lang.Boolean" default="false"/>    
+        <cc:attribute name="stickyHeader" type="java.lang.Boolean" default="false" shortDescription="in testting"/>    
         <cc:attribute name="draggableColumns" type="java.lang.Boolean" default="false"/>    
         <cc:attribute name="sort" type="java.lang.Boolean" default="false"/>    
+        <cc:attribute name="Options" type="java.lang.Boolean" default="false" shortDescription="show options button in datatable"/>    
         <cc:attribute name="filter" type="java.lang.Boolean" default="false"/>  
         <cc:attribute name="resetColumnsAble" type="java.lang.Boolean" default="false"/>
         <cc:attribute name="cellEdit" type="java.lang.Boolean" default="false"/>
@@ -45,16 +50,17 @@
         <cc:attribute name="showIndex" type="java.lang.Boolean" default="false" shortDescription="show row index"/>
         <cc:attribute name="resizableColumns" type="java.lang.Boolean" default="false"/>
         <cc:attribute name="liveResize" type="java.lang.Boolean" default="false"/>
-        <cc:attribute name="uiDatatableTable" type="java.lang.String" default="width:100%;" shortDescription="if width:auto% the column width can't change"/>
+        <cc:attribute name="uiDatatableTable" type="java.lang.String" default="width:100%;" shortDescription="if set width:auto; the column width can't change"/>
         <!-- 
         <cc:attribute name="columnToggler" type="java.lang.Boolean" default="false"/>   
         -->
 
         <cc:attribute name="contextMenu" default="" type="java.lang.String" shortDescription="p:contextMenu src path"/>
         <cc:attribute name="addOneRecord" type="java.lang.Boolean" default="false"/>
-        <cc:attribute name="rowSelectRadioUpdate" type="java.lang.String" default="" shortDescription="update id,eg: @this..."/>    
+        <cc:attribute name="rowSelectRadioUpdate" type="java.lang.String" default="@this" shortDescription="update id,eg: @this..."/>    
 
         <cc:attribute name="advanceColumnToggler" type="java.lang.Boolean" default="false" shortDescription=""/>    
+        <cc:attribute name="updateColumns" type="java.lang.Boolean" default="false" shortDescription=""/>    
         <cc:attribute name="removeSelect" type="java.lang.Boolean" default="false" shortDescription="TODO: confirm delete"/>
         <cc:attribute name="exportALl" type="java.lang.Boolean" default="false" shortDescription="export excel"/>
         <cc:attribute name="exportPage" type="java.lang.Boolean" default="false" shortDescription="export excel"/>
@@ -63,14 +69,22 @@
         <cc:attribute name="exportSheetName" type="java.lang.String" default="sheet A" shortDescription="export excel sheet name"/>
         <cc:attribute name="globalFilter" type="java.lang.Boolean" default="false" shortDescription="TODO:"/>            
         <cc:attribute name="freezeColumns" type="java.lang.Integer" default="0" shortDescription="TODO:full test"/>
+        <!-- TODO：默认冻结 -->
+        <cc:attribute name="defaultFreezeColumns" type="java.lang.Integer" default="1" shortDescription="TODO:full test"/>
         <cc:attribute name="freezeScrollbar" type="java.lang.String" default="autoHide:0" shortDescription="must json format,support"/>
         <cc:attribute name="blockTable" type="java.lang.Boolean" default="false" shortDescription="block datatable when trigger event on it"/>    
 
-        <cc:attribute name="emptyMessage" default="empty records"/>    
+        <cc:attribute name="emptyMessage" default="#{msgs.empty_records}"/>    
         <cc:attribute name="currentPageReportTemplate" default="{startRecord} - {endRecord} of {totalRecords}"/>    
         <cc:attribute name="paginatorTemplate" default="{Exporters} {CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} {GlobalFilter}"/>    
         <cc:attribute name="paginatorPosition" default="top"/>    
         <cc:attribute name="rowsPerPageTemplate" default="5,10,15"/>           
+        <cc:attribute name="customColumnsKey" default="default"/>           
+        <cc:attribute name="jpqlCondition" default="" shortDescription="must start with [ and o.field ]"/>           
+
+        <cc:attribute name="sortField" default="" shortDescription=" fieldName or fieldName1 desc, o.fieldName2"/>           
+        <cc:attribute name="sortOrder" default="descending" shortDescription="ASCENDING,descending"/>           
+        <cc:attribute name="rowStyleClass" default="" shortDescription="@see primefaces datatable rowStyleClass,rule as # {entity.field = some ? A : B}"/>           
     </cc:interface>
 
     <!-- IMPLEMENTATION -->
@@ -82,6 +96,10 @@
                 visibility: #{cc.attrs.filter eq false ? 'hidden!important':''};
                 display: #{cc.attrs.filter eq false ? 'none!important':''};            
 
+            }
+            .ui-selectonemenu-panel .ui-selectonemenu-filter {
+                width: 70px;
+                padding-right: 15px;
             }
             .ui-sortable-column-icon{
                 visibility: #{cc.attrs.sort eq false ? 'hidden!important':''};
@@ -133,6 +151,8 @@
             <ui:include src="#{cc.attrs.contextMenu}"/>
         </p:contextMenu>
         <c:set value="#{cc.attrs.rows}" property="tableRows" target="#{cc.attrs.controller}"/>
+        <c:set value="#{cc.attrs.customColumnsKey}" property="customColumnsKey" target="#{cc.attrs.controller}"/>
+        <c:set value="#{cc.attrs.jpqlCondition}" property="jpqlCondition" target="#{cc.attrs.controller}"/>        
         <p:dataTable id="entity_table"
                      var="entity"
                      styleClass="#{cc.attrs.tableClass}"
@@ -147,37 +167,48 @@
                      editable="#{cc.attrs.cellEdit}"                     
                      filterEvent="enter"
                      paginator="true"
-                     sortOrder="descending"
+                     sortOrder="#{cc.attrs.sortOrder}"
+                     sortField="#{cc.attrs.sortField}"
                      resizableColumns="#{cc.attrs.resizableColumns}"
                      liveResize="#{cc.attrs.liveResize}"
                      draggableRows="#{cc.attrs.draggableRows}"
                      draggableColumns="#{cc.attrs.draggableColumns}"           
-                     rowStyleClass="BASE-#{index}"                         
+                     rowStyleClass="BASE-#{index} #{cc.attrs.rowStyleClass}"
                      selection="#{cc.attrs.controller[cc.attrs.selected eq ''? 'entity':cc.attrs.selected]}"
                      emptyMessage="#{cc.attrs.emptyMessage}"
                      currentPageReportTemplate="#{cc.attrs.currentPageReportTemplate}"
                      paginatorTemplate="#{cc.attrs.paginatorTemplate}"  
                      paginatorPosition="#{cc.attrs.paginatorPosition}"
                      rowsPerPageTemplate="#{cc.attrs.rowsPerPageTemplate}"
+                     stickyHeader="#{cc.attrs.stickyHeader}" 
                      >
             <f:facet name="{Exporters}">
                 <div class="dynamic_table_option" style="float:left;">
                     <c:if test="#{cc.attrs.freezeColumns > 0}">
-                        <h:outputText value="Freeze Columns:" />
+                        <h:outputText value="#{msgs.Freeze_Columns}" />
                         <h:selectOneMenu value="#{cc.attrs.controller.freezeColumns}" id='baseDynamicColumnsFreezeSize'>
                             <c:forEach end="#{cc.attrs.freezeColumns}" var="size">                                
                                 <f:selectItem itemValue="#{size}" itemLabel="#{size}"/>
                             </c:forEach>
                         </h:selectOneMenu>
                     </c:if> 
-                    <p:splitButton value="Options">
-                        <p:menuitem rendered="#{cc.attrs.addOneRecord}" value="Add One Record" 
+                    <p:splitButton value="#{msgs.options}" rendered="#{cc.attrs.Options}">
+                        <p:menuitem rendered="#{cc.attrs.addOneRecord}"
+                                    value="#{msgs.new_record}" 
                                     icon="fa fa-fw fa-plus"
                                     actionListener="#{cc.attrs.controller.newEmptyEntity()}"
-                                    process="@this" update="entity_table,:growl"/>
-                        <p:menuitem value="Select Columns"
+                                    process="@this"
+                                    update="entity_table,:growl"/>
+                        <p:menuitem value="#{msgs.select_columns}"
                                     icon="fa fa-fw fa-th-list"                                    
-                                    rendered="#{cc.attrs.advanceColumnToggler}" process="@this" onclick="PF('selectColumns').show()"/>
+                                    rendered="#{cc.attrs.advanceColumnToggler}"
+                                    process="@this" 
+                                    onclick="PF('selectColumns').show()"/>
+                        <p:menuitem value="#{msgs.update_columns}"
+                                    icon="fa fa-fw fa-th-list"                                    
+                                    rendered="#{cc.attrs.updateColumns}"
+                                    process="@this" 
+                                    onclick="PF('updateColumns').show()"/>
 
                         <p:menuitem value="Restore Columns Setting"
                                     rendered="#{cc.attrs.resetColumnsAble}"
@@ -187,18 +218,21 @@
                                     icon="fa fa-fw fa-remove"
                                     actionListener="#{cc.attrs.controller.batchRemoveByIds}"
                                     process="@this" update="entity_table,:growl"/>
-                        <p:menuitem value="Export All" rendered="#{cc.attrs.exportALl}"                                    
+                        <p:menuitem value="#{msgs.export_all}" rendered="#{cc.attrs.exportALl}"                                    
                                     icon="fa fa-fw fa-download"
                                     ajax="false" immediate="true">
-                            <pe:exporter target="entity_table" type="xlsx" fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
+                            <pe:exporter target="entity_table" 
+                                         type="xlsx"
+                                         fileName="#{cc.attrs.exportName}" 
+                                         postProcessor="#{cc.attrs.controller.postExportExcel}"/>
                             <p:fileDownload value="#{cc.attrs.controller.excel}"/>
                         </p:menuitem>
-                        <p:menuitem value="Export Page" rendered="#{cc.attrs.exportPage}"
+                        <p:menuitem value="#{msgs.export_page}" rendered="#{cc.attrs.exportPage}"
                                     icon="fa fa-fw fa-download"
                                     ajax="false" immediate="true">
                             <pe:exporter target="entity_table" type="xlsx" pageOnly="#{cc.attrs.exportPage}" fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
                         </p:menuitem>
-                        <p:menuitem value="Export Selection" rendered="#{cc.attrs.exportSelect}"
+                        <p:menuitem value="#{msgs.export_selected}" rendered="#{cc.attrs.exportSelect}"
                                     icon="fa fa-fw fa-download"
                                     ajax="false" immediate="true">
                             <pe:exporter target="entity_table" type="xlsx" selectionOnly="#{cc.attrs.exportSelect}"  fileName="#{cc.attrs.exportName}" postProcessor="#{cc.attrs.controller.postExportExcel}"/>
@@ -253,7 +287,7 @@
             <!-- 
             <p:ajax event="page" process=":customerQuery:queryPanel,:customerQuery:datatableExt:entity_table" update=":customerQuery:datatableExt:entity_table"/> 
             TODO:onPage ext  
-                        <p:ajax event="page" listener="#{cc.attrs.controller.onPage}"/>   
+                        <p:ajax event="page" listener="# {cc.attrs.controller.onPage}"/>   
             -->
 
             <p:column rendered="#{cc.attrs.showIndex}" headerText="NO"
@@ -262,7 +296,8 @@
                       toggleable="false">
                 <h:outputText value="#{index+1}"/>
             </p:column>
-            <pe:column rendered="#{(cc.attrs.selected eq 'entity') or (cc.attrs.selected eq 'entitys')}" selectionMode="#{cc.attrs.selected eq 'entity'?'single':'multiple'}"
+            <pe:column rendered="#{(cc.attrs.selected eq 'entity') or (cc.attrs.selected eq 'entitys')}" 
+                       selectionMode="#{cc.attrs.selected eq 'entity'?'single':'multiple'}"
                        exportable="false"
                        style="width:24px;text-align:center"/>
             <c:forEach items="#{cc.attrs.controller.columns}" var="column">     
@@ -272,22 +307,23 @@
 
                 <c:if test="#{!column.isExtInclude}">
                     <pe:column
+                        priority="#{column.priority}"
                         headerText="#{column.header}"                    
                         exportable="false"
                         id="columns"
-                        styleClass="ba-column columnId-#{column.id}"
+                        styleClass="ba-column ba-column-#{column.field} columnId-#{column.id}"
                         style="width:#{column.width};#{column.style};"
                         rendered="#{column.hasExtFunction}" 
                         exportSort="#{column.exportSort}"
                         exportHeader="#{column.exportHeader}">
                         <span style="display: none"/>
-                        <p:commandButton 
+                        <p:commandLink 
                             rendered="#{column.isExtButton and entity[column.extRendered]}"
                             process="@this"
                             value="#{column.extValue}"
-                            title="#{column.title}"
-                            icon="#{column.extIcon}"
+                            title="#{column.title}"                            
                             style="#{column.style}"
+                            styleClass="#{column.extIcon}"
                             onsuccess="#{column.onsuccess}"
                             update="#{column.onupdate}"
                             onstart="#{column.onstart}"
@@ -298,16 +334,17 @@
                                         listener="#{cc.attrs.controller[column.ajaxListener]}" process="#{column.ajaxProcess}"
                                         update="#{column.ajaxUpdate}" />
                             </c:if>
-                        </p:commandButton>
+                        </p:commandLink>
                         <h:selectOneMenu
                             rendered="#{column.isExtSelect and entity[column.extRendered]}"
                             value="#{entity[column.field]}">
                             <f:selectItem itemLabel="-select-" />
-                            <f:selectItems value="#{cc.attrs.controller[column.dropDown]}" />
+                            <f:selectItems value="#{cc.attrs.controller.invokeEl(column.dropDown)}"/>                            
                             <p:ajax event="valueChange" update="#{column.onupdate}"/>
                         </h:selectOneMenu>
                     </pe:column>
                     <pe:column
+                        priority="#{column.priority}"
                         rendered="#{!column.hasExtFunction}"
                         id="columns" 
                         field="#{column.field}"
@@ -316,29 +353,31 @@
                         style="width:#{column.width};"
                         resizable="#{column.resizable}"
                         toggleable="#{column.toggleable}"
-                        styleClass="ba-column columnId-#{column.id} #{column.styleClass}"
+                        groupRow="#{column.groupRow}"
+                        styleClass="ba-column ba-column-#{column.field} columnId-#{column.id} #{column.styleClass}"
                         sortBy="#{false?entity[column.field]:''}"
                         exportSort="#{column.exportSort}"
                         exportHeader="#{column.exportHeader}"
+                        filterable="#{column.filterable}"
                         filterBy="#{entity[column.field]}">
                         <c:if test="#{cc.attrs.filter}">
                             <f:facet name="filter">
                                 <c:if test="#{column.hasFilterOptions}">
-                                    <c:if test="#{column.isMultiFilter}">
+                                    <c:if test="#{column.isMultiFilter}">                                        
                                         <p:selectCheckboxMenu id="filter"
                                                               filter="true" filterMatchMode="contains"
-                                                              label="Multi Filter"
+                                                              label="#{msgs.select}"
                                                               panelStyleClass="dt-multi-filter-panel"
-                                                              onHide="PF('entity_tableTable').filter()">
-                                            <f:selectItems value="#{cc.attrs.controller[column.filterOptions]}"/>
+                                                              onchange="PF('entity_tableTable').filter()">
+                                            <f:selectItems value="#{cc.attrs.controller.invokeEl(column.filterOptions)}"/>
                                             <!-- TODO:event -->
                                         </p:selectCheckboxMenu>
 
                                     </c:if>
-                                    <c:if test="#{!column.isMultiFilter}">                                       
+                                    <c:if test="#{!column.isMultiFilter}">   
                                         <p:selectOneMenu id="filter" filter="true" filterMatchMode="contains" onchange="PF('entity_tableTable').filter()">
-                                            <f:selectItem itemValue="" itemLabel="select" noSelectionOption="true"/>
-                                            <f:selectItems value="#{cc.attrs.controller[column.filterOptions]}"/>
+                                            <f:selectItem itemValue="" itemLabel="#{msgs.select}" noSelectionOption="true"/>
+                                            <f:selectItems value="#{cc.attrs.controller.invokeEl(column.filterOptions)}"/>
                                             <!-- TODO:event -->
                                         </p:selectOneMenu>
                                     </c:if>
@@ -361,31 +400,37 @@
                             </f:facet>
                         </c:if>                
                         <f:facet name="header">
-                            <p:commandLink style="float:left;" class="fa fa-fw fa-remove" 
+                            <p:commandLink style="float:left;" 
                                            rendered="#{cc.attrs.removeOnColumn}"
                                            title="remove this column"
                                            disabled="#{!column.toggleable}"
                                            actionListener="#{cc.attrs.controller.removeColumn(column.id)}" 
                                            update="entity_table"                                           
-                                           oncomplete="removeColumn('#{column.id}')" process="@this">
+                                           oncomplete="removeColumn('#{column.id}')"
+                                           process="@this">
+                                <span class="fa fa-fw fa-remove"></span>
                             </p:commandLink>
-                            <h:outputText id="column_sort" escape="false" value="#{column.header}" class="column_sort_#{column.id}"/>
+                            <h:outputText id="column_sort" escape="false" 
+                                          value="#{column.header}" 
+                                          class="column_sort_#{column.id}"/>
                         </f:facet>
 
-                        <c:if test="#{!cc.attrs.cellEdit}">
-                            <h:outputText style="#{column.style}" value="#{entity[column.field]}">
+                        <c:if test="#{!cc.attrs.cellEdit or !(column.edit)}">                            
+                            <h:outputText style="#{column.style}"
+                                          escape="#{column.escape}"
+                                          value="#{entity[column.field]}">
                                 <c:if test="#{column.hasConverterId()}">	                    
-                                    <f:converter converterId="#{column.converterId}"/>
-                                    <!--TODO: outFormat  parent=" # {column.outFormat}" -->
+                                    <f:converter parent="#{column.outFormat}"
+                                                 converterId="#{column.converterId}"/>
                                 </c:if>
-                            </h:outputText>
+                            </h:outputText>                            
                         </c:if>
 
-                        <p:cellEditor rendered="#{cc.attrs.cellEdit}">
-                            <f:facet name="input">  
+                        <p:cellEditor rendered="#{cc.attrs.cellEdit and column.edit}">
+                            <f:facet name="input">
                                 <h:selectOneMenu value="#{entity[column.field]}" rendered="#{column.hasDropDown}" disabled="#{!column.edit}">
-                                    <f:selectItem itemValue="" itemLabel="select"/>
-                                    <f:selectItems value="#{cc.attrs.controller[column.dropDown]}"/>
+                                    <f:selectItem itemValue="" itemLabel="#{msgs.select}"/>
+                                    <f:selectItems value="#{cc.attrs.controller.invokeEl(column.dropDown)}"/>
                                     <p:ajax event="change"
                                             process="@this"
                                             update="#{column.onupdate}"
@@ -481,7 +526,9 @@
                                 </c:if>
                             </f:facet>
                             <f:facet name="output">
-                                <h:outputText style="#{column.style}" value="#{entity[column.field]}">
+                                <h:outputText style="#{column.style}" 
+                                              value="#{entity[column.field]}"
+                                              escape="#{column.escape}">
                                     <c:if test="#{column.hasConverterId()}">	                    
                                         <f:converter parent="#{column.outFormat}" converterId="#{column.converterId}"/>
                                     </c:if>
@@ -493,7 +540,7 @@
                 </c:if>                            
             </c:forEach>
             <pe:column rendered="#{cc.attrs.deleteRow}" exportable="false">
-                <p:commandLink value="delete"
+                <p:commandLink value="#{msgs.delete}"
                                actionListener="#{cc.attrs.controller.remove(entity)}"
                                process="entity_table" update="entity_table,:growl"/>
             </pe:column>
@@ -503,7 +550,11 @@
             LOADING...<br />
             <p:graphicImage library="img" name="ajaxloadingbar.gif"/>
         </p:blockUI>
-        <p:dialog header="Select Columns" rendered="#{cc.attrs.advanceColumnToggler}" widgetVar="selectColumns" dynamic="true" resizable="false">
+        <p:dialog header="#{msgs.select_columns}"
+                  rendered="#{cc.attrs.advanceColumnToggler}" 
+                  widgetVar="selectColumns" 
+                  dynamic="true" 
+                  resizable="false">
             <!-- TODO: process itemLable incloud html code -->
             <p:pickList id="PojoPickList"
                         rendered="#{cc.attrs.advanceColumnToggler}"
@@ -515,22 +566,86 @@
                         showSourceControls="true" 
                         showCheckbox="true"                        
                         showSourceFilter="true" 
-                        showTargetFilter="true"       
+                        showTargetFilter="true" 
+                        moveBottomLabel="#{msgs.moveBottomLabel}"
+                        moveDownLabel="#{msgs.moveDownLabel}"
+                        moveTopLabel="#{msgs.moveTopLabel}"
+                        moveUpLabel="#{msgs.moveUpLabel}"
                         itemDisabled="#{!column.toggleable}"                        
                         converter="#{baseColumnModelMB.converter}"  
                         filterMatchMode="contains">
-                <f:facet name="sourceCaption">Visible</f:facet>
-                <f:facet name="targetCaption">Hidden</f:facet>
+                <f:facet name="sourceCaption">#{msgs.visible}</f:facet>
+                <f:facet name="targetCaption">#{msgs.hidden}</f:facet>
                 <p:column>
                     <h:outputText value="#{column.header}" escape="false"/>                
                 </p:column>
             </p:pickList>
             <f:facet name="footer">
-                <p:commandButton id="pojoSubmit" value="Save" process="PojoPickList,@this"
+                <p:commandButton id="pojoSubmit" 
+                                 value="#{msgs.save}"
+                                 partialSubmit="true"
+                                 process="PojoPickList,@this"
                                  actionListener="#{cc.attrs.controller.updateAdvancedColumns}"
-                                 update="entity_table,:growl"/>
+                                 update="entity_table,PojoPickList,:growl"/>
                 <p:spacer width="20"/>
-                <p:commandButton type="button" value="Cancel"  onclick="PF('selectColumns').hide();"/>
+                <p:commandButton type="button" value="#{msgs.cancel}"  onclick="PF('selectColumns').hide();"/>
+            </f:facet>
+        </p:dialog>
+        <p:dialog header="#{msgs.update_columns}" 
+                  rendered="#{cc.attrs.updateColumns}"
+                  widgetVar="updateColumns" 
+                  dynamic="true"
+                  resizable="false">
+            <!-- TODO: process itemLable incloud html code -->
+            <h:panelGrid columns="1"
+                         id="updatePojoPickList">
+                <p:pickList rendered="#{cc.attrs.updateColumns}"
+                            value="#{cc.attrs.controller.updatedSelectColumns}"
+                            var="column"
+                            style="font-size: 12px;"
+                            itemValue="#{column}"
+                            itemLabel="#{column.header}"
+                            showSourceControls="true" 
+                            showCheckbox="true"                        
+                            showSourceFilter="true" 
+                            showTargetFilter="true" 
+                            moveBottomLabel="#{msgs.moveBottomLabel}"
+                            moveDownLabel="#{msgs.moveDownLabel}"
+                            moveTopLabel="#{msgs.moveTopLabel}"
+                            moveUpLabel="#{msgs.moveUpLabel}"
+                            itemDisabled="#{!column.toggleable}"                        
+                            converter="#{baseColumnModelMB.converter}"  
+                            filterMatchMode="contains">
+                    <f:facet name="sourceCaption">#{msgs.column}</f:facet>
+                    <f:facet name="targetCaption">#{msgs.update_column}</f:facet>
+                    <p:column>
+                        <h:outputText value="#{column.header}" escape="false"/>                
+                    </p:column>
+                </p:pickList>
+                <p:panelGrid columns="2">
+                    <p:outputLabel value="#{msgs.select_field}"/>
+                    <p:selectOneMenu value="#{cc.attrs.controller.entityField}">
+                        <f:selectItems value="#{cc.attrs.controller.baseColumnModelFields}" 
+                                       var="field"
+                                       itemLabel="#{field.name}"
+                                       itemValue="#{field.name}"/>
+                    </p:selectOneMenu>
+                    <!-- dynamic change type -->
+                    <p:outputLabel value="#{msgs.field_value}" style="text-align: right;"/>
+                    <p:inputText value="#{cc.attrs.controller.entityFieldValue}"/>
+                </p:panelGrid>
+            </h:panelGrid>
+            <f:facet name="footer">
+                <p:commandButton value="#{msgs.save}" 
+                                 process="updatePojoPickList,@this"
+                                 partialSubmit="true"
+                                 actionListener="#{cc.attrs.controller.updateSelectColumns}"
+                                 onsuccess="PF('updateColumns').hide();"
+                                 update="entity_table,updatePojoPickList,:growl"/>
+                <p:spacer width="20"/>
+                <p:commandButton type="button"
+                                 value="#{msgs.cancel}"  
+                                 onclick="PF('updateColumns').hide();"/>
             </f:facet>
         </p:dialog>
 
@@ -548,25 +663,30 @@
             <span style="display: none;" id="freezeScrollbar" title="#{cc.attrs.freezeScrollbar}"/>
             <span style="display: none;" id="tempFreezeScrollbarLeft" title="#{cc.attrs.freezeScrollbar}"/>
             <script>
+                var orgHeight = $('div.ui-datatable-tablewrapper').css('height');
                 var tf;
                 function setOldLeft() {
                     $('#tempFreezeScrollbarLeft').attr('title', $('.horizontal').css('left'));
                 }
                 var $dataBody = $('div.ui-datatable-tablewrapper');
-                var dbHeight = $dataBody.css('height');
-                $dataBody.css({overflow: 'hidden', height: dbHeight});
+                // var dbHeight = $dataBody.css('height');
+                $dataBody.css({overflow: 'hidden', height: orgHeight});
 //                 var options =JSON.stringify('{scrollbar:{'+$('#freezeScrollbar').attr('title')+'}}');
 //                 var tf = $dataBody.find("table").tableFreeze('{scrollbar:{'+$('#freezeScrollbar').attr('title')+'}}');
                 tf = $dataBody.find("table").tableFreeze({scrollbar: {autoHide: 0}});
-                tf.set(parseInt($("select[id$='baseDynamicColumnsFreezeSize']").find('option:selected').text()));
-                $("select[id$='baseDynamicColumnsFreezeSize']").change(function () {
+                //tf.set(parseInt($("select[id$='baseDynamicColumnsFreezeSize']").find('option:selected').text()));
+                //console.log(#{cc.attrs.defaultFreezeColumns});
+                tf.set(parseInt(#{cc.attrs.defaultFreezeColumns}));
+                var $cfs = $("select[id$='baseDynamicColumnsFreezeSize']");
+                $cfs.val(#{cc.attrs.defaultFreezeColumns});
+                $cfs.change(function () {
                     tf.set(parseInt($(this).find('option:selected').text()));
                 });
 
                 function doFilter() {
                     var $dataBody = $('div.ui-datatable-tablewrapper');
-                    var dbHeight = $dataBody.css('height');
-                    $dataBody.css({overflow: 'hidden', height: dbHeight});
+                    //  var dbHeight = $dataBody.css('height');
+                    $dataBody.css({overflow: 'hidden', height: orgHeight});
                     tf = $dataBody.find("table").tableFreeze({scrollbar: {autoHide: 0}});
                     tf.set(parseInt($("select[id$='baseDynamicColumnsFreezeSize']").find('option:selected').text()));
                     $("select[id$='baseDynamicColumnsFreezeSize']").change(function () {
@@ -575,7 +695,7 @@
                     $('.horizontal').css('left', $('#tempFreezeScrollbarLeft').attr('title'));
                 }
                 function freezeColumns() {
-                    console.log('>>> call freezeColumns()');
+
                     tf.set(parseInt($("select[id$='baseDynamicColumnsFreezeSize']").find('option:selected').text()));
                     $('.horizontal').css('left', $('#tempFreezeScrollbarLeft').attr('title'));
                 }

@@ -32,7 +32,7 @@ public class UUIDSequence extends Sequence implements SessionCustomizer {
     }
 
     @SuppressWarnings("rawtypes")
-	@Override
+    @Override
     public Vector getGeneratedVector(Accessor accessor,
             AbstractSession writeSession, String seqName, int size) {
         return null;

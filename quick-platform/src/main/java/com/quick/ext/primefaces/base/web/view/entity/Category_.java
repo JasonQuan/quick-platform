@@ -36,4 +36,5 @@ public class Category_ {
     public static volatile SingularAttribute<Category, String> onclick;
     public static volatile SingularAttribute<Category, String> fragment;
     public static volatile SingularAttribute<Category, Boolean> disabled;
+    public static volatile SingularAttribute<Category, Boolean> type;
 }

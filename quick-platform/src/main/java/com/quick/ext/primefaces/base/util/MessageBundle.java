@@ -62,7 +62,7 @@ public class MessageBundle {
     public static void showMessage(String message, Severity severity) {
         try {
             FacesContext ctx = FacesContext.getCurrentInstance();
-            ctx.addMessage(null, new FacesMessage(severity, "Info", message));
+            ctx.addMessage(null, new FacesMessage(severity, "提示信息", message));//TODO: i18n
         } catch (Exception e) {
             LOGGER.error(e);
         }
@@ -139,6 +139,7 @@ public class MessageBundle {
     public static final String SUCCESS = "success";
     public static final String DUPLICATION_OF_DATA = "duplication_of_data";
     public static final String UPDATE = "update";
+    public static final String FREEZE_COLUMNS = "Freeze_Columns";
     public static String CREATE = "create";
     public static String REMOVE = "remove";
     public static String ACCOUNT_NAME_AND_PASSWORD_CAN_NOT_BE_EMPTY = "account_name_and_password_can_not_be_empty";

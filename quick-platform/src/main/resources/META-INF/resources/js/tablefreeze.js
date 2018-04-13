@@ -339,7 +339,7 @@
 	}
 
 	$.fn.drag = function(opts) {
-		if ($(this).size() != 1) {
+		if ($(this).length != 1) {
 			var arr = [];
 			$(this).each(function() {
 				arr.push($(this).drag(opts));

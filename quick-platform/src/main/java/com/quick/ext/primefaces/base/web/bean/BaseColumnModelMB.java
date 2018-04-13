@@ -27,6 +27,7 @@ import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
 import com.sun.faces.application.ApplicationAssociate;
 import com.sun.faces.mgbean.BeanBuilder;
 import com.sun.faces.mgbean.BeanManager;
+import java.lang.reflect.Modifier;
 
 @ManagedBean
 @ViewScoped
@@ -86,13 +87,16 @@ public class BaseColumnModelMB extends BaseMB<BaseColumnModel, BaseColumnModel> 
         if (ArrayUtils.isEmpty(managedBeanFields)) {
             if (StringUtils.isNotBlank(managedClass)) {
                 Class<?> clz = Class.forName(managedClass);
-                Field[] fields = clz.getDeclaredFields();
-                List<SelectItem> ls = new ArrayList<SelectItem>();
+                Method[] methods = clz.getMethods();
+                List<SelectItem> ls = new ArrayList<>();
                 ls.add(new SelectItem("", "select"));
                 String field = "";
-                for (Field f : fields) {
-                    if (f.getType().isArray() && (f.getType().getComponentType() == SelectItem.class)) {
-                        field = f.getName();
+                for (Method f : methods) {
+                    Class<?> returnType = f.getReturnType();
+                    if ((returnType == java.util.List.class || returnType.isArray()) && Modifier.isPublic(f.getModifiers())) {
+                        String beanElName = clz.getSimpleName().replace(clz.getSimpleName().charAt(0), Character.toLowerCase(clz.getSimpleName().charAt(0)));
+                        (new StringBuilder()).append(Character.toLowerCase(clz.getSimpleName().charAt(0))).append(clz.getSimpleName().substring(1)).toString();
+                        field = "#{" + beanElName + "." + f.getName() + "()}";
                         ls.add(new SelectItem(field, field));
                     }
                 }
@@ -268,5 +272,28 @@ public class BaseColumnModelMB extends BaseMB<BaseColumnModel, BaseColumnModel> 
 
     public void setManagedClass(String managedClass) {
         this.managedClass = managedClass;
+    }
+
+    /**
+     * in testting function
+     */
+    public void batchSetup() {
+        for (BaseColumnModel c : getEntitys()) {
+            c.setEdit(getEntity().getEdit());
+        }
+        try {
+            dao().txBegin();
+            dao().updates(getEntitys());
+            dao().txCommit();
+        } catch (Exception e) {
+            MessageBundle.showError("操作失败");
+            logger.error("操作失败", e);
+            try {
+                dao().txRollback();
+            } catch (Exception ex) {
+                logger.error("回滚失败");
+                logger.error("回滚失败", ex);
+            }
+        }
     }
 }

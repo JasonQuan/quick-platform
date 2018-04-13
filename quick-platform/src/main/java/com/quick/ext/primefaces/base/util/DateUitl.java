@@ -11,6 +11,8 @@ import java.util.Date;
 public class DateUitl {
 
     public static final String yyyyMMDD = "yyyy/MM/DD";
+    public static final String yyyyMMDD_HHMM = "yyyy/MM/DD HH:mm";
+    public static final String yyyyMMDD_HHMMss = "yyyy/MM/DD HH:mm:ss";
     public static final String MySql_DateTime = "yyyy-MM-dd HH:mm:ss";
 
     /**

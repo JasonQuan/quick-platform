@@ -13,29 +13,50 @@
             .new_column_dialog div:nth-child(2) div:nth-child(2){
                 padding: 0;
             }
+            body{
+                font-size: 12px;
+            }
         </style>
     </h:head>
-    <p:growl id="growl" showDetail="true" showSummary="true" />
+    <p:growl id="pgrowl" showDetail="true" showSummary="true" />
     <h:form id="form" prependId="false">
         <p:commandButton style="display: none;" />
         <p:commandButton id="create_new" value="Create EXT Column"
-                         process="@this" update="growl,outputPanel_create_column"
+                         process="@this" update="pgrowl,outputPanel_create_column"
                          oncomplete="PF('modify_column').hide();PF('create_new_column').show();">
             <p:resetInput target="outputPanel_create_column" />
         </p:commandButton>
         <p:commandButton id="init_columns" value="Init Columns"
                          title="click this button will init all entitys field,if the field already will ignore, if the field has annotation '@Transient' it will hiden on table by default configuration"
                          actionListener="#{baseColumnModelMB.initColumns()}" process="@this"
-                         update=":growl,@form" />
+                         update=":pgrowl,@form" />
+        <p:commandButton id="batchSetup" value="批量设置"
+                         title="批量设置" 
+                         actionListener="#{baseColumnModelMB.reset()}"
+                         oncomplete="PF('batch_setup_dialog').show()"
+                         update="batch_setup_panel"
+                         process="@this"/>
 
-        <b:table id="baseTable" controller="#{baseColumnModelMB}" sort="true"
-                 globalFilter="true" cellEdit="true" draggableColumns="true"
+        <b:table id="baseTable"
+                 controller="#{baseColumnModelMB}" 
+                 Options="true"
+                 sort="true"
+                 globalFilter="true" 
+                 cellEdit="true"
+                 draggableColumns="true"
                  filter="true" 
                  exportALl="true"                 
                  exportPage="true"
-                 exportSelect="true" advanceColumnToggler="true"
-                 selected="entitys" deleteRow="true" removeSelect="true" addOneRecord="true"
-                 freezeColumns="4" uiDatatableTable="width:auto;"
+                 rows="10"
+                 rowsPerPageTemplate="20,30,40"
+                 exportSelect="true"
+                 advanceColumnToggler="true"
+                 selected="entitys" 
+                 deleteRow="true" 
+                 removeSelect="true"
+                 addOneRecord="true"
+                 freezeColumns="4" 
+                 uiDatatableTable="width:auto;"
                  resizableColumns="false" />
         <p:blockUI block="form" trigger="init_columns">
             PROCESSING ...<br />
@@ -175,11 +196,11 @@
                             </h:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="button_ext"
-                                                 update="growl,button_ext"
+                                                 update="pgrowl,button_ext"
                                                  actionListener="#{baseColumnModelMB.createColumn}" />
                                 <p:spacer width="20" height="40" />
                                 <p:commandButton value="Reset" process="@this"
-                                                 update="growl,button_ext">
+                                                 update="pgrowl,button_ext">
                                     <p:resetInput target="button_ext" />
                                 </p:commandButton>
                                 <p:spacer width="20" />
@@ -304,11 +325,11 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="pull_down_ext"
-                                                 update="growl,pull_down_ext"
+                                                 update="pgrowl,pull_down_ext"
                                                  actionListener="#{baseColumnModelMB.createColumn}" />
                                 <p:spacer width="20" height="40" />
                                 <p:commandButton value="Reset" process="@this"
-                                                 update="growl,pull_down_ext">
+                                                 update="pgrowl,pull_down_ext">
                                     <p:resetInput target="pull_down_ext" />
                                 </p:commandButton>
                                 <p:spacer width="20" />
@@ -406,7 +427,7 @@
                                                rendered="#{!baseColumnModelMB.hasManagerBean}"
                                                value="Filter DropDown" />
                                 <p:inputText id="add_column_create_filterOptions"
-                                             placeholder="SelectItems[]"
+                                             placeholder="# {beam.SelectItems[]}"
                                              rendered="#{!baseColumnModelMB.hasManagerBean}"
                                              value="#{baseColumnModelMB.extBaseColumnModel.filterOptions}" />
 
@@ -443,7 +464,7 @@
                                 <f:facet name="header">
                                     <h:outputText value="EXT Options" />
                                 </f:facet>
-                                
+
                                 <p:outputLabel for="add_column_create_filterPlaceHolder"
                                                value="Filter PlaceHolder" />
                                 <p:inputText id="add_column_create_filterPlaceHolder"
@@ -526,11 +547,11 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="add_column"
-                                                 update="growl,add_column"
+                                                 update="pgrowl,add_column"
                                                  actionListener="#{baseColumnModelMB.createColumn}" />
                                 <p:spacer width="20" height="40" />
                                 <p:commandButton value="Reset" process="@this"
-                                                 update="growl,add_column">
+                                                 update="pgrowl,add_column">
                                     <p:resetInput target="add_column" />
                                 </p:commandButton>
                                 <p:spacer width="20" />
@@ -578,6 +599,7 @@
                                 <p:outputLabel for="add_include_column_create_include"
                                                value="UI Include src" />
                                 <p:inputText id="add_include_column_create_include"
+                                             title="html p:column headerText width:50px;margin:0;padding:0"
                                              required="true" placeholder="path for xhtml file"
                                              value="#{baseColumnModelMB.extBaseColumnModel.include}" />
 
@@ -667,11 +689,11 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="add_include_column"
-                                                 update="growl,add_include_column"
+                                                 update="pgrowl,add_include_column"
                                                  actionListener="#{baseColumnModelMB.createColumn}" />
                                 <p:spacer width="20" height="40" />
                                 <p:commandButton value="Reset" process="@this"
-                                                 update="growl,add_include_column">
+                                                 update="pgrowl,add_include_column">
                                     <p:resetInput target="add_include_column" />
                                 </p:commandButton>
                                 <p:spacer width="20" />
@@ -817,7 +839,7 @@
                             </h:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="modify_button_ext"
-                                                 update="growl,modify_button_ext,baseTable:entity_table"
+                                                 update="pgrowl,modify_button_ext,baseTable:entity_table"
                                                  oncomplete="PF('modify_column').hide();"
                                                  actionListener="#{baseColumnModelMB.updateColumn()}" />
                                 <p:spacer width="20" height="40" />
@@ -953,7 +975,7 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="modify_pull_down_ext"
-                                                 update="growl,modify_pull_down_ext,baseTable:entity_table"
+                                                 update="pgrowl,modify_pull_down_ext,baseTable:entity_table"
                                                  oncomplete="PF('modify_column').hide();"
                                                  actionListener="#{baseColumnModelMB.updateColumn()}" />
                                 <p:spacer width="20" height="40" />
@@ -1045,7 +1067,7 @@
                                                rendered="#{!baseColumnModelMB.hasManagerBean}"
                                                value="Filter DropDown" />
                                 <p:inputText id="modify_add_column_create_filterOptions"
-                                             placeholder="SelectItems[]"
+                                             placeholder="# {beam.SelectItems[]}"
                                              rendered="#{!baseColumnModelMB.hasManagerBean}"
                                              value="#{baseColumnModelMB.extBaseColumnModel.filterOptions}" />
 
@@ -1081,6 +1103,17 @@
                                              placeholder="Filter PlaceHolder"
                                              value="#{baseColumnModelMB.extBaseColumnModel.filterPlaceHolder}" />
 
+                                <p:outputLabel for="modify_add_column_create_outFormat"
+                                               value="Field Out Format" />
+                                <p:inputText id="modify_add_column_create_outFormat"
+                                             placeholder="outFormat like yyyy-MM-dd"
+                                             value="#{baseColumnModelMB.extBaseColumnModel.outFormat}" />
+
+                                <p:outputLabel for="modify_add_column_create_converterId"
+                                               value="Field ConverterId" />
+                                <p:inputText id="modify_add_column_create_converterId"
+                                             placeholder="converterId like javax.faces.DateTime"
+                                             value="#{baseColumnModelMB.extBaseColumnModel.converterId}" />
                             </p:panelGrid>
                             <p:panelGrid columns="2">
                                 <f:facet name="header">
@@ -1098,6 +1131,14 @@
                                                value="Can Edit" />
                                 <p:selectOneRadio id="modify_add_column_create_edit"
                                                   value="#{baseColumnModelMB.extBaseColumnModel.edit}">
+                                    <f:selectItem itemValue="true" itemLabel="Yes" />
+                                    <f:selectItem itemValue="false" itemLabel="No" />
+                                </p:selectOneRadio>
+
+                                <p:outputLabel for="modify_add_column_create_groupRow"
+                                               value="Group Row" />
+                                <p:selectOneRadio id="modify_add_column_create_groupRow"
+                                                  value="#{baseColumnModelMB.extBaseColumnModel.groupRow}">
                                     <f:selectItem itemValue="true" itemLabel="Yes" />
                                     <f:selectItem itemValue="false" itemLabel="No" />
                                 </p:selectOneRadio>
@@ -1164,7 +1205,7 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="modify_add_column"
-                                                 update="growl,modify_add_column,baseTable:entity_table"
+                                                 update="pgrowl,modify_add_column,baseTable:entity_table"
                                                  actionListener="#{baseColumnModelMB.updateColumn()}"
                                                  oncomplete="PF('modify_column').hide();" />
                                 <p:spacer width="20" height="40" />
@@ -1303,11 +1344,11 @@
                             </p:panelGrid>
                             <f:facet name="footer">
                                 <p:commandButton value="Save" process="modify_include_column"
-                                                 update="growl,modify_include_column"
+                                                 update="pgrowl,modify_include_column"
                                                  actionListener="#{baseColumnModelMB.updateColumn}" />
                                 <p:spacer width="20" height="40" />
                                 <p:commandButton value="Reset" process="@this"
-                                                 update="growl,modify_include_column">
+                                                 update="pgrowl,modify_include_column">
                                     <p:resetInput target="modify_include_column" />
                                 </p:commandButton>
                                 <p:spacer width="20" />
@@ -1325,6 +1366,27 @@
             </p:outputPanel>
 
         </p:dialog>
+        <!-- batch setup-->
+        <h:panelGroup id="batch_setup_panel">
+            <p:dialog header="批量设置" widgetVar="batch_setup_dialog">
+                <p:panelGrid id="batch_setup" style="width:100%;">
+                    <p:row>
+                        <p:column>
+                            <p:outputLabel value="编辑"/>                            
+                        </p:column>
+                        <p:column>
+                            <p:selectBooleanCheckbox value="#{baseColumnModelMB.entity.edit}"/>                            
+                        </p:column>
+                    </p:row>                   
+                </p:panelGrid>
+                <f:facet name="footer">
+                    <p:commandButton value="保存"
+                                     actionListener="#{baseColumnModelMB.batchSetup}" 
+                                     update="@form"
+                                     process="batch_setup,@this"/>
+                </f:facet>
+            </p:dialog>
+        </h:panelGroup>
     </h:form>
     <script>
 // 		$('').ready(function(){

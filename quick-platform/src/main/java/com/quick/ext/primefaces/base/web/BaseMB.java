@@ -45,10 +45,14 @@ import com.quick.ext.primefaces.base.util.ObjectUtil;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
+import javax.el.ValueExpression;
 import javax.interceptor.Interceptors;
-import org.apache.poi.hssf.usermodel.HSSFRichTextString;
-import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -92,7 +96,6 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      */
     private List<T> entitys;
 
-    // t est
     public BaseMB() {
     }
 
@@ -134,26 +137,16 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     /**
      * go to list page, if update successful.
      *
-     */
-    public void update() {
-        FacesMessage message = dao().update(entity);
-        MessageBundle.autoMessage(message);
-        afterUpdate();
-        // if (message.getSeverity().equals(FacesMessage.SEVERITY_INFO)) {
-        // reset();
-        // FacesContext.getCurrentInstance().getExternalContext().redirect("a.hxtml");
-        // }
-    }
-
-    // public void persist() {
-    // if (entity.isNew()) {
-    // create();
-    // } else {
-    // update();
-    // }
-    // }
-    /**
-     * get BaseConverter
+     *
+     * public void update() { FacesMessage message = dao().update(entity);
+     * MessageBundle.autoMessage(message); afterUpdate(); // if
+     * (message.getSeverity().equals(FacesMessage.SEVERITY_INFO)) { // reset();
+     * //
+     * FacesContext.getCurrentInstance().getExternalContext().redirect("a.hxtml");
+     * // } }
+     *
+     * // public void persist() { // if (entity.isNew()) { // create(); // }
+     * else { // update(); // } // } /** get BaseConverter
      *
      * @return BaseConverter
      */
@@ -170,10 +163,20 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      */
     public LazyEntityDataModel<T, E> getDataModel() {
         if (dataModel == null) {
-            dataModel = new LazyEntityDataModel<T, E>(getDataModelJpql(), dao(), allColumns, getJpqlParameters(), getGlobalFilterJpql());
+            dataModel = new LazyEntityDataModel<T, E>(getDataModelJpql() + " " + getJpqlCondition(), dao(), allColumns, getJpqlParameters(), getGlobalFilterJpql());
         }
 
         return dataModel;
+    }
+
+    protected String jpqlCondition = "";
+
+    public String getJpqlCondition() {
+        return jpqlCondition;
+    }
+
+    public void setJpqlCondition(String jpqlCondition) {
+        this.jpqlCondition = jpqlCondition;
     }
 
     protected String getGlobalFilterJpql() {
@@ -192,7 +195,8 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     /**
      *
      *
-     * @return JPQL
+     * @return JPQL "SELECT o FROM " + dao().getEntityClass().getSimpleName() +
+     * " o where 1 = 1 "
      */
     protected String getDataModelJpql() {
         return "SELECT o FROM " + dao().getEntityClass().getSimpleName() + " o where 1 = 1 ";
@@ -248,6 +252,9 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
 		 * pageSelectEntitys = getPageSelectEntitys();
 		 * pageSelectEntitys.addAll(entitys);
          */
+        if (!entitys.isEmpty()) {
+            this.setEntity(entitys.get(0));
+        }
         this.entitys = entitys;
     }
 
@@ -607,7 +614,7 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      */
     private List<BaseColumnModel> columns = new ArrayList<>();
 
-    BaseColumnModelSB columnModelDao = new BaseColumnModelSB();
+    private final BaseColumnModelSB columnModelDao = new BaseColumnModelSB();
 
     /**
      * use for get customs columns
@@ -621,7 +628,12 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
      * @return customs key
      */
     protected String getCustomColumnsKey() {
-        return "default";
+        return customColumnsKey;
+    }
+    private String customColumnsKey = "default";
+
+    public void setCustomColumnsKey(String customColumnsKey) {
+        this.customColumnsKey = customColumnsKey;
     }
 
     protected String getCustomColumnsGroup() {
@@ -707,9 +719,11 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     private List<BaseColumnModel> allColumns;
 
     protected void initViewColums() {
+        updatedSelectColumns = null;
+        advancedSelectColumns = null;
         allColumns = getAllColumns();
-        selectColumns.clear();
-        columns.clear();
+        selectColumns = new ArrayList<>();
+        columns = new ArrayList<>();
         selectColumnsItems = new SelectItem[allColumns.size()];
         for (int i = 0; i < allColumns.size(); i++) {
             selectColumnsItems[i] = new SelectItem(allColumns.get(i).getId(), allColumns.get(i).getHeader());
@@ -777,6 +791,8 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
             logger.error(ex);
             MessageBundle.showLocalWarning(MessageBundle.FAILURE);
         }
+
+        afterCellEdit();
         // }
     }
 
@@ -875,26 +891,48 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     }
 
     private DualListModel<BaseColumnModel> advancedSelectColumns;
+    private DualListModel<BaseColumnModel> updatedSelectColumns;
 
     public DualListModel<BaseColumnModel> getAdvancedSelectColumns() {
-//		if (advancedSelectColumns == null) {
-        List<BaseColumnModel> source = new ArrayList<>();
-        List<BaseColumnModel> target = new ArrayList<>();
-        if (allColumns == null) {
-            allColumns = getAllColumns();
-        }
-        for (BaseColumnModel bcm : allColumns) {
-            // if (bcm.getToggleable()) {
-            if (bcm.getVisible()) {
-                source.add(bcm);
-            } else {
-                target.add(bcm);
+        if (advancedSelectColumns == null) {
+            List<BaseColumnModel> source = new ArrayList<>();
+            List<BaseColumnModel> target = new ArrayList<>();
+            if (allColumns == null) {
+                allColumns = getAllColumns();
             }
-            // }
+            for (BaseColumnModel bcm : allColumns) {
+                // if (bcm.getToggleable()) {
+                if (bcm.getVisible()) {
+                    source.add(bcm);
+                } else {
+                    target.add(bcm);
+                }
+            }
+            advancedSelectColumns = new DualListModel<>(source, target);
         }
-        advancedSelectColumns = new DualListModel<>(source, target);
 //		}
         return advancedSelectColumns;
+    }
+
+    public DualListModel<BaseColumnModel> getUpdatedSelectColumns() {
+        if (updatedSelectColumns == null) {
+            List<BaseColumnModel> source = new ArrayList<>();
+            List<BaseColumnModel> target = new ArrayList<>();
+            if (allColumns == null) {
+                allColumns = getAllColumns();
+            }
+            for (BaseColumnModel bcm : allColumns) {
+                if (bcm.getVisible()) {
+                    source.add(bcm);
+                }
+            }
+            updatedSelectColumns = new DualListModel<>(source, target);
+        }
+        return updatedSelectColumns;
+    }
+
+    public void setUpdatedSelectColumns(DualListModel<BaseColumnModel> updatedSelectColumns) {
+        this.updatedSelectColumns = updatedSelectColumns;
     }
 
     public void setAdvancedSelectColumns(DualListModel<BaseColumnModel> advancedSelectColumns) {
@@ -914,19 +952,89 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
             o.setVisible(true);
         }
         updateItems.addAll(source);
-        List<BaseColumnModel> target = getAdvancedSelectColumns().getTarget();
+        List<BaseColumnModel> target = advancedSelectColumns.getTarget();
         for (int i = 0; i < target.size(); i++) {
             BaseColumnModel o = target.get(i);
             o.setSort(999);
             o.setVisible(false);
         }
         updateItems.addAll(target);
-        columnModelDao.updates(updateItems);
-        initViewColums();
-        // if update sucess
-        // this.columns = selectColumns;
-        FacesMessage fm = new FacesMessage(FacesMessage.SEVERITY_INFO, "Operation", "Success");
-        MessageBundle.autoMessage(fm);
+        try {
+            columnModelDao.txBegin();
+            columnModelDao.updates(updateItems);
+            columnModelDao.txCommit();
+            initViewColums();
+            MessageBundle.showInfo("操作成功");
+        } catch (Exception e) {
+            MessageBundle.showError("操作失败");
+            logger.error("操作失败", e);
+            try {
+                dao().txRollback();
+            } catch (Exception ex) {
+                logger.error("回滚失败");
+                logger.error("回滚失败", ex);
+            }
+        }
+    }
+    private String entityFieldValue;
+    private String entityField;
+
+    public void updateSelectColumns() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        List<BaseColumnModel> target = updatedSelectColumns.getTarget();
+        for (int i = 0; i < target.size(); i++) {
+            BaseColumnModel o = target.get(i);
+            Field field = o.getClass().getDeclaredField(entityField);
+            field.setAccessible(true);
+            if (StringUtils.containsIgnoreCase(field.getType().getName(), "boolean")) {
+                field.set(o, Boolean.valueOf(entityFieldValue));
+            } else if (StringUtils.containsIgnoreCase(field.getType().getName(), "int")) {
+                field.set(o, Integer.valueOf(entityFieldValue));
+            } else {
+                field.set(o, entityFieldValue);
+            }
+        }
+        try {
+            columnModelDao.txBegin();
+            columnModelDao.updates(target);
+            columnModelDao.txCommit();
+            initViewColums();
+            entityField = null;
+            entityFieldValue = null;
+//            RequestContext.getCurrentInstance().execute("PF('updateColumns').hide();");
+//            RequestContext.getCurrentInstance().update("entity_table");
+
+            MessageBundle.showInfo("操作成功");
+        } catch (Exception e) {
+            MessageBundle.showError("操作失败");
+            logger.error("操作失败", e);
+            try {
+                dao().txRollback();
+            } catch (Exception ex) {
+                logger.error("回滚失败");
+                logger.error("回滚失败", ex);
+            }
+        }
+    }
+
+    public Field[] getBaseColumnModelFields() {
+        return BaseColumnModel.class.getDeclaredFields();
+
+    }
+
+    public String getEntityFieldValue() {
+        return entityFieldValue;
+    }
+
+    public void setEntityFieldValue(String entityFieldValue) {
+        this.entityFieldValue = entityFieldValue;
+    }
+
+    public String getEntityField() {
+        return entityField;
+    }
+
+    public void setEntityField(String entityField) {
+        this.entityField = entityField;
     }
 
     /**
@@ -953,20 +1061,40 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         MessageBundle.autoMessage(outcome);
     }
 
-    public void callColumnExtension(String methodName, Object t) {
+    public void callColumnExtension(String methodName, T t) {
         try {
             Method method = this.getClass().getMethod(methodName, t.getClass());
             method.invoke(this, t);
         } catch (IllegalAccessException ex) {
-            logger.error("Illegal Access Exception:" + methodName);
+            logger.error("callColumnExtension Illegal Access Exception:" + methodName);
         } catch (IllegalArgumentException ex) {
-            logger.error("Illegal Argument Exception:" + methodName);
+            logger.error("callColumnExtension Illegal Argument Exception:" + methodName);
         } catch (InvocationTargetException ex) {
-            logger.error("Invocation Targe Exception:" + methodName);
+            logger.error("callColumnExtension Invocation Targe Exception:" + methodName);
         } catch (NoSuchMethodException ex) {
-            logger.error("No Such Method:" + methodName);
+            try {
+                //Fix bug then paramter is generic
+                Method method = this.getClass().getMethod(methodName, AbstractEntity.class);
+                method.invoke(this, t);
+            } catch (Exception e) {
+                logger.error("callColumnExtension No Such Method:" + methodName + " class: " + t.getClass());
+                for (Method method : this.getClass().getMethods()) {
+                    logger.error("method: " + method.getName());
+                    for (Parameter param : method.getParameters()) {
+                        logger.error("param Name: " + param.getName());
+                    }
+
+                    Class<?>[] parameterTypes = method.getParameterTypes();
+                    Type[] genericParameterTypes = method.getGenericParameterTypes();
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        logger.error(parameterTypes[i].getName());
+                        logger.error(genericParameterTypes[i].getTypeName());
+                    }
+                    logger.error("---");
+                }
+            }
         } catch (SecurityException ex) {
-            logger.error("Security Exception:" + methodName);
+            logger.error("callColumnExtension Security Exception:" + methodName);
         }
     }
 
@@ -1082,13 +1210,14 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
         XSSFCellStyle styleHeader = wb.createCellStyle();
 //        styleHeader.setFillPattern(CellStyle.SOLID_FOREGROUND);
 //        styleHeader.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
-        styleHeader.setAlignment(CellStyle.ALIGN_CENTER);
-        styleHeader.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+
+        styleHeader.setAlignment(HorizontalAlignment.CENTER);
+        styleHeader.setVerticalAlignment(VerticalAlignment.CENTER);
         styleHeader.setWrapText(true);
 
         XSSFCellStyle sheetStyle = wb.createCellStyle();
-        sheetStyle.setAlignment(CellStyle.ALIGN_CENTER);
-        sheetStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+        sheetStyle.setAlignment(HorizontalAlignment.CENTER);
+        sheetStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
         XSSFRow row0 = sheet.getRow(0);
         row0.setHeight((short) 600);
@@ -1107,5 +1236,45 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     public void removeColumn(String entityId) {
         columnModelDao.update(entityId, BaseColumnModel_.visible, Boolean.FALSE);
         initViewColums();
+    }
+
+    /**
+     * testting on treetable cell edit event, var must tree, will complete this
+     * method
+     *
+     * @Test
+     * @param event
+     */
+    public void onCellEdit(CellEditEvent event) {
+
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+
+        if (newValue != null && !newValue.equals(oldValue)) {
+            String fieldName = event.getColumn().getCellEditor().getFacet("input").getValueExpression("value").getExpressionString();
+            fieldName = fieldName.substring(fieldName.lastIndexOf(".") + 1, fieldName.length() - 1);
+
+            FacesContext ctx = FacesContext.getCurrentInstance();
+            ValueExpression idExpression = ctx.getApplication().getExpressionFactory().createValueExpression(ctx.getELContext(), "#{tree.id}", String.class);
+            String entityId = idExpression.getValue(ctx.getELContext()).toString();
+
+            logger.debug("call onCellEdit: [" + entityId + "][" + fieldName + "][" + newValue);
+            FacesMessage update = dao().update(entityId, fieldName, newValue);
+            update.setSummary("修改");
+            MessageBundle.autoMessage(update);
+        }
+    }
+
+    public Object invokeEl(String el) {
+        if (el != null && el.length() > 1) {
+            try {
+                FacesContext ctx = FacesContext.getCurrentInstance();
+                ValueExpression idExpression = ctx.getApplication().getExpressionFactory().createValueExpression(ctx.getELContext(), el, Object.class);
+                return idExpression.getValue(ctx.getELContext());
+            } catch (Exception e) {
+                logger.error("invokeEl with error: [" + el + "]", e);
+            }
+        }
+        return el;
     }
 }

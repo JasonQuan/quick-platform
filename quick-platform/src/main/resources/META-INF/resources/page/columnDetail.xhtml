@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:cc="http://java.sun.com/jsf/composite">
+
+    <cc:interface         
+        shortDescription="table column 3, lable, value, message. only in h:panelGrid">
+        <!-- TODO: f:ajax not work, fix it-->
+        <cc:attribute name="idd" required="true" shortDescription="id"/>        
+        <cc:attribute name="value" required="true"/>
+        <cc:attribute name="required" default="false"/>
+        <cc:attribute name="label" required="true"/>
+        <cc:attribute name="escape" default="true"/>
+        <cc:attribute name="readOnly" default="false"/>
+        <cc:attribute name="disabled" default="false"/>
+        <cc:attribute name="tips" shortDescription="input tips,输入提示"/>
+
+        <cc:attribute name="converter"/>
+        <cc:attribute name="enableValidator" default="false"/>
+        <cc:attribute 
+            name="validator" 
+            method-signature="void Action(javax.faces.context.FacesContext,
+            javax.faces.component.UIComponent,Object)"
+            shortDescription="方法验证，非注册验证，使用时enableValidator必须为true"/>    
+
+    </cc:interface>
+    <cc:implementation> 
+         
+    </cc:implementation>
+</html>

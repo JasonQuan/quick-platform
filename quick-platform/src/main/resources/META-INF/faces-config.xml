@@ -31,5 +31,6 @@
     <converter>
         <converter-id>com.primefaces.ext.converter.BooleanConverter</converter-id>
         <converter-class>com.quick.ext.primefaces.converter.BooleanConverter</converter-class>
+        <converter-class>com.quick.ext.primefaces.converter.DateTimeConverter</converter-class>
     </converter>
 </faces-config>

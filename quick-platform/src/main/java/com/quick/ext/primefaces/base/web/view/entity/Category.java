@@ -1,6 +1,7 @@
 package com.quick.ext.primefaces.base.web.view.entity;
 
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
+import com.quick.ext.primefaces.base.util.ColumnHelper;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,12 +87,23 @@ public class Category extends AbstractEntity implements Serializable {
     private Category parentCategory;
     @Column(name = "CATEGORY_LEAVE")
     private String leave;
+    @ColumnHelper(header = "类型")
+    @Column(name = "TYPE")
+    private String type;
 
     public Category() {
     }
 
     public int getSort() {
         return sort;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getAction() {
