@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ import javax.persistence.PessimisticLockException;
 import javax.persistence.Query;
 import javax.persistence.QueryTimeoutException;
 import javax.persistence.Table;
-import javax.persistence.TemporalType;
 import javax.persistence.TransactionRequiredException;
 import javax.persistence.TypedQuery;
 import javax.persistence.UniqueConstraint;
@@ -50,7 +48,6 @@ import com.quick.ext.primefaces.base.util.VOHelper;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_;
 import static com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel_.sort;
-import static java.util.Arrays.sort;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,6 +55,7 @@ import javax.interceptor.Interceptors;
 import javax.persistence.EntityTransaction;
 import org.apache.commons.beanutils.BeanUtils;
 import static java.util.Arrays.sort;
+import java.util.HashMap;
 import javax.persistence.EntityExistsException;
 import javax.persistence.RollbackException;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -1283,6 +1281,22 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
     }
 
+    public <X> X findSingleByField(String column, Object data, Class<X> cls) {
+        if (column == null || "".equals(column) || data == null) {
+            return null;
+        }
+        String sql = "SELECT o FROM " + cls.getSimpleName() + " o WHERE o." + column + " = '" + data + "'";
+        try {
+            TypedQuery<X> q = createQuery(sql, cls);
+            logger.debug("findByField: " + sql);
+            // q.setParameter("data", data);
+            return q.getSingleResult();
+        } catch (Exception e) {
+            logger.error(sql, e);
+            return null;
+        }
+    }
+
     /**
      * createNativeQuery
      *
@@ -1387,7 +1401,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param jpql SELECT o Object o
      * @return Entity list
      */
-    protected List<T> findByJPQL(String jpql) {
+    public List<T> findByJPQL(String jpql) {
         try {
             List<T> outcome = createQuery(jpql, entityClass).getResultList();
             if (outcome == null) {
@@ -1400,16 +1414,26 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
     }
 
-    protected List findByJPQL(String jpql, Class cl) {
+    public <X> X findSingleByJPQL(String jpql, Class<X> cl) {
         try {
-            List outcome = createQuery(jpql, cl).getResultList();
+            X outcome = createQuery(jpql, cl).getSingleResult();
+            return outcome;
+        } catch (Exception e) {
+            logger.error("\r\n\t findByJPQL: SQL:" + jpql, e);
+            return null;
+        }
+    }
+
+    public <X> List<X> findByJPQL(String jpql, Class<X> cl) {
+        try {
+            List<X> outcome = createQuery(jpql, cl).getResultList();
             if (outcome == null) {
-                outcome = new ArrayList<T>();
+                outcome = new ArrayList<>();
             }
             return outcome;
         } catch (Exception e) {
             logger.error("\r\n\t findByJPQL: SQL:" + jpql, e);
-            return new ArrayList<T>();
+            return new ArrayList<>();
         }
     }
 
@@ -1420,7 +1444,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param limit
      * @return Entity list
      */
-    protected List<T> findByJPQL(String jpql, int limit) {
+    public List<T> findByJPQL(String jpql, int limit) {
         try {
             TypedQuery query = createQuery(jpql, entityClass);
             if (limit > 0) {
@@ -1433,7 +1457,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
     }
 
-    protected List<T> findByJPQL(Class<T> c, String jpql) {
+    public List<T> findByJPQL(Class<T> c, String jpql) {
         try {
             return createQuery(jpql, c).getResultList();
         } catch (Exception e) {
@@ -1448,7 +1472,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param jpql SELECT o Object o
      * @return Entity list
      */
-    protected int findCountByJPQL(String jpql) {
+    public int findCountByJPQL(String jpql) {
         int outcome = 0;
         try {
 
@@ -1466,7 +1490,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      * @param jpql eg: SELECT o Object o
      * @return Single Entity
      */
-    protected T findSingleByJPQL(String jpql) {
+    public T findSingleByJPQL(String jpql) {
         try {
             return (T) createQuery(jpql, entityClass).getSingleResult();
             // return createQuery(jpql, entityClass).getSingleResult();
@@ -2044,5 +2068,23 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         } catch (Exception ex) {
             Logger.getLogger(BaseEJB.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public Map<String, Object> getMapResult(String nativeSql, Map<Integer, Object> params) {
+        Query query = getEntityManager().createNativeQuery(nativeSql);
+        if (params != null) {
+            for (Entry<Integer, Object> entry : params.entrySet()) {
+                Integer key = entry.getKey();
+                Object value = entry.getValue();
+                query.setParameter(key, value);
+            }
+        }
+        List<Object[]> resultList = query.getResultList();
+        Map<String, Object> outcome = new HashMap<>();
+        for (Object[] object : resultList) {
+            outcome.put(object[0].toString(), object[1]);
+        }
+
+        return outcome;
     }
 }
