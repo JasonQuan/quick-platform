@@ -765,6 +765,7 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
     }
 
     /**
+     * the managebean can't setup *.view.ViewScoped, should be *.bean.*Scoped
      * 动态列方案
      * <p:ajax event="keyup" listener= * * * * * * * * * * * *
      * "#{dtColumnsView.cellEdit(car.id, column.property,car[column.property])}"
