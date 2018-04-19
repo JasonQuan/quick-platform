@@ -40,7 +40,6 @@ import org.primefaces.model.SortOrder;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
 import com.quick.ext.primefaces.base.exception.BaseExceptoin;
 import com.quick.ext.primefaces.base.interceptor.TrackInterceptor;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.DateUitl;
 import com.quick.ext.primefaces.base.util.MessageBundle;
 import com.quick.ext.primefaces.base.util.ObjectUtil;
@@ -72,7 +71,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 @Interceptors(TrackInterceptor.class)
 public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
-    protected final BaseLogger logger = new BaseLogger(BaseEJB.class);
+    public final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(BaseEJB.class);
     private final Class<T> entityClass;
     private final Class<E> voClass;
 

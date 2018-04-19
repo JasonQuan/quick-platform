@@ -10,7 +10,6 @@ import javax.faces.convert.Converter;
 import javax.persistence.metamodel.SingularAttribute;
 
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.BaseObject;
 import com.quick.ext.primefaces.base.util.MessageBundle;
 
@@ -23,7 +22,7 @@ import com.quick.ext.primefaces.base.util.MessageBundle;
 public class ForeignConverter<T extends AbstractEntity, E extends AbstractEntity> extends BaseObject implements Converter {
 	private SingularAttribute foreignField;
 	private BaseMB<T, E> baseMB;
-	private final BaseLogger logger = new BaseLogger(this.getClass());
+        public final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(ForeignConverter.class);
 	public ForeignConverter(SingularAttribute foreignField, BaseMB<T, E> baseController) {
 		this.foreignField = foreignField;
 		this.baseMB = baseController;

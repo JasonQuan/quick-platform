@@ -11,7 +11,6 @@ import javax.faces.context.FacesContext;
 //import javax.faces.view.ViewScoped;
 import org.primefaces.event.FileUploadEvent;
 
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.BaseObject;
 
 /**
@@ -21,7 +20,7 @@ import com.quick.ext.primefaces.base.util.BaseObject;
 //@ManagedBean
 // @ViewScoped
 public class BaseFileUpload extends BaseObject {
-	private final BaseLogger logger = new BaseLogger(this.getClass());
+	private final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(BaseMobleMB.class);
 	public void upload(FileUploadEvent event) {
 		FacesMessage msg = new FacesMessage("Success! ", event.getFile().getFileName() + " is uploaded.");
 

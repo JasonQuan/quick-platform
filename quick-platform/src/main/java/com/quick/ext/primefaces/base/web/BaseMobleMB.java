@@ -16,7 +16,6 @@ import org.primefaces.context.RequestContext;
 
 import com.quick.ext.primefaces.base.service.BaseEJB;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 
@@ -30,7 +29,7 @@ import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 @SuppressWarnings({"serial", "rawtypes", "unchecked"})
 public abstract class BaseMobleMB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
-    protected BaseLogger logger = new BaseLogger(this.getClass());
+    private final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(BaseMobleMB.class);
 
     /**
      * get BaseDao

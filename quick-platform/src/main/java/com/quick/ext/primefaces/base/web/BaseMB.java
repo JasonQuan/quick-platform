@@ -39,7 +39,6 @@ import com.quick.ext.primefaces.base.service.BaseEJB;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
 import com.quick.ext.primefaces.base.interceptor.TrackInterceptor;
 import com.quick.ext.primefaces.base.util.BaseKeyValue;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.MessageBundle;
 import com.quick.ext.primefaces.base.util.ObjectUtil;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
@@ -50,7 +49,6 @@ import java.lang.reflect.Type;
 import javax.el.ValueExpression;
 import javax.interceptor.Interceptors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -71,7 +69,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 @Interceptors(TrackInterceptor.class)
 public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity> implements Serializable {
 
-    protected BaseLogger logger = new BaseLogger(this.getClass());
+    public final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(this.getClass());
 
     /**
      * get BaseDao

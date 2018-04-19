@@ -1,6 +1,5 @@
 package com.quick.ext.primefaces.base.web.bean;
 
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.web.view.dao.DashboardSB;
 import com.quick.ext.primefaces.base.web.view.dao.PanelModelSB;
 import com.quick.ext.primefaces.base.web.view.entity.BaseAjaxModel;
@@ -26,7 +25,7 @@ import org.primefaces.event.ToggleEvent;
  */
 public abstract class BaseDashboardMB {
 
-    protected final BaseLogger LOGGER = new BaseLogger(this.getClass());
+    public final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(BaseDashboardMB.class);
     private Dashboard dashboard;
     private List<BasePanelModel> panels;
     private BaseDashboardModel basedashboard;
@@ -50,7 +49,7 @@ public abstract class BaseDashboardMB {
             dashboardSB.update(basedashboard.getId(), "details", sb.toString());
             basedashboard = dashboardSB.findSingleByField("customeKey", getCustomeKey());
         } else {
-            LOGGER.info("panel config not found with customeKey: " + getCustomeKey());
+            logger.info("panel config not found with customeKey: " + getCustomeKey());
         }
     }
 
@@ -59,7 +58,7 @@ public abstract class BaseDashboardMB {
         panels = panelModelSB.findByField("customeKey", getCustomeKey());
         basedashboard = dashboardSB.findSingleByField("customeKey", getCustomeKey());
         if (basedashboard == null) {
-            LOGGER.info("dashboard config not found with customeKey: " + getCustomeKey());
+            logger.info("dashboard config not found with customeKey: " + getCustomeKey());
             return;
         }
         if (basedashboard.getDetails() == null || basedashboard.getDetails().equals("")) {
@@ -99,7 +98,7 @@ public abstract class BaseDashboardMB {
                 try {
                     faceletContext.includeFacelet(panel, p.getInclude());
                 } catch (Exception ex) {
-                    LOGGER.error("ui include error with panel : " + p.getId() + " src " + p.getInclude());
+                    logger.error("ui include error with panel : " + p.getId() + " src " + p.getInclude());
                 }
             }
         }

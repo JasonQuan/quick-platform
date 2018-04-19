@@ -6,7 +6,6 @@ import javax.faces.convert.Converter;
 
 import com.quick.ext.primefaces.base.service.BaseEJB;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 
 /**
  *
@@ -14,7 +13,7 @@ import com.quick.ext.primefaces.base.util.BaseLogger;
  * @param <T,E>
  */
 public class BaseConverter<T extends AbstractEntity> implements Converter {
-	private final BaseLogger logger = new BaseLogger(this.getClass());
+	private final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(BaseConverter.class);
 	private final BaseEJB<T, ?> baseSB;
 
 	public BaseConverter(BaseEJB<T, ?> baseDao) {

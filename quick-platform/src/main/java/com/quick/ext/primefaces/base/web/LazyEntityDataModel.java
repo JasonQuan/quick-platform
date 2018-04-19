@@ -10,11 +10,11 @@ import org.primefaces.model.SortOrder;
 
 import com.quick.ext.primefaces.base.service.BaseEJB;
 import com.quick.ext.primefaces.base.entity.AbstractEntity;
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.util.MessageBundle;
 import com.quick.ext.primefaces.base.web.view.entity.BaseColumnModel;
 import javax.faces.context.FacesContext;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class LazyEntityDataModel<T extends AbstractEntity, E extends AbstractEntity> extends LazyDataModel<E> implements SelectableDataModel<E> {
 
-    private final BaseLogger logger = new BaseLogger(this.getClass());
+    private final Logger logger = Logger.getLogger(this.getClass());
     private static final long serialVersionUID = 1L;
     private String filter;
     private String globalFilter;

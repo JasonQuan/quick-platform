@@ -45,7 +45,7 @@ import com.quick.ext.primefaces.base.entity.AbstractEntity;
  */
 public class ObjectUtil {
 
-    protected static BaseLogger logger = new BaseLogger(ObjectUtil.class);
+    private final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(ObjectUtil.class);
 
     /**
      *

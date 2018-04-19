@@ -2,7 +2,6 @@ package com.quick.ext.primefaces.base.service;
 
 import javax.annotation.PostConstruct;
 
-import com.quick.ext.primefaces.base.util.BaseLogger;
 import com.quick.ext.primefaces.base.web.view.dao.BaseColumnModelSB;
 
 /**
@@ -15,15 +14,15 @@ public class AppStartUp {
 
 //    @Inject
     private BaseColumnModelSB baseColumnModelSB;
-    private BaseLogger LOGGER = new BaseLogger(this.getClass());
+    public final static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(AppStartUp.class);
 
     @PostConstruct
     protected void initCache() {
         long start = System.currentTimeMillis();
-        LOGGER.info("start init dynamic column configuration");
+        logger.info("start init dynamic column configuration");
         baseColumnModelSB.findAll();
         long end = System.currentTimeMillis();
-        LOGGER.info("end init dynamic column configuration , using " + (end - start) / 1000 + " ms");
+        logger.info("end init dynamic column configuration , using " + (end - start) / 1000 + " ms");
 
     }
 }
