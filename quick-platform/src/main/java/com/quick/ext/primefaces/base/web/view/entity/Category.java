@@ -52,9 +52,9 @@ public class Category extends AbstractEntity implements Serializable {
     //@Size(max = 45)
     @Column(length = 45)
     private String remark;
-    @Column(columnDefinition = "VARCHAR(1024) default '#'")
+    @Column(length = 1024)
     private String url;
-    @Column(columnDefinition = "VARCHAR(255) default '_self'")
+    @Column(length = 255)
     private String target;
     private String style;
     private String styleClass;
@@ -62,7 +62,7 @@ public class Category extends AbstractEntity implements Serializable {
     private String updateRender;
     private String process;
     private String onstart;
-    @Column(columnDefinition = "TINYINT(1) default 0")
+    
     private boolean disabled;
     private String oncomplete;
     private String onerror;
@@ -76,6 +76,7 @@ public class Category extends AbstractEntity implements Serializable {
     private String outcome;
     private String action;
     private String actionListener;
+    @Column(name = "\"immediate\"")
     private String immediate;
     private boolean includeViewParams;
     private String fragment;

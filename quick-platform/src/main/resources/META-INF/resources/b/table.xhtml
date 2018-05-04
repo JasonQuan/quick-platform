@@ -33,6 +33,7 @@
     <cc:interface>
         <cc:attribute name="controller" type="com.quick.ext.primefaces.base.web.BaseMB" required="true"/>        
         <cc:attribute name="headerText" type="java.lang.String" shortDescription="data table header text"/>    
+        <cc:attribute name="locale" type="java.lang.String" default="zh" shortDescription="data table date locale"/>    
         <cc:attribute name="style" type="java.lang.String" shortDescription="css style"/>
         <cc:attribute name="tableClass" default="dynamicDataTable" shortDescription="data table table class"/>
         <cc:attribute name="rows" type="java.lang.Integer" default="10" shortDescription="primefaces data table rows"/>    
@@ -108,7 +109,9 @@
             .ui-datatable table{
                 ${cc.attrs.uiDatatableTable}
             }
-
+            .base-table-select-column-dialog{
+                height: 600px;
+            }
         </style>
         <c:if test="#{cc.attrs.freezeColumns > 0}">
             <style>
@@ -488,8 +491,9 @@
                                     </p:inputText>                         
                                     <p:calendar
                                         rendered="#{column.isDate}"
-                                        pattern="MM/dd/yyyy HH:mm:ss" 
+                                        pattern="#{column.outFormat}" 
                                         disabled="#{!column.edit}"
+                                        locale="zh"
                                         value="#{entity[column.field]}">
                                         <p:ajax event="dateSelect" 
                                                 process="@this"
@@ -551,6 +555,7 @@
             <p:graphicImage library="img" name="ajaxloadingbar.gif"/>
         </p:blockUI>
         <p:dialog header="#{msgs.select_columns}"
+                  styleClass="base-table-select-column-dialog"
                   rendered="#{cc.attrs.advanceColumnToggler}" 
                   widgetVar="selectColumns" 
                   dynamic="true" 
@@ -624,7 +629,7 @@
                 </p:pickList>
                 <p:panelGrid columns="2">
                     <p:outputLabel value="#{msgs.select_field}"/>
-                    <p:selectOneMenu value="#{cc.attrs.controller.entityField}">
+                    <p:selectOneMenu value="#{cc.attrs.controller.entityField}" filter="true" filterMatchMode="contains">
                         <f:selectItems value="#{cc.attrs.controller.baseColumnModelFields}" 
                                        var="field"
                                        itemLabel="#{field.name}"

@@ -166,7 +166,9 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         }
         // Annotation[] annotations = t.getClass().getAnnotations();outMessage =
         // new FacesMessage(
-        outMessage = new FacesMessage(FacesMessage.SEVERITY_INFO, MessageBundle.CREATE, MessageBundle.SUCCESS);
+        outMessage = new FacesMessage(FacesMessage.SEVERITY_INFO,
+                MessageBundle.getLocalizedString(MessageBundle.CREATE),
+                MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
         String message = validationUniqueColumn(t);
         if (message != null) {
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
@@ -773,7 +775,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         if (facesMessage != null) {
             return facesMessage;
         }
-        facesMessage = new FacesMessage(MessageBundle.REMOVE);
+        facesMessage = new FacesMessage(MessageBundle.getLocalizedString(MessageBundle.REMOVE));
         try {
             // TODO:SELECT LAST_INSERT_ID();
             Field[] fields = entityClass.getDeclaredFields();
@@ -847,7 +849,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             logger.info("[remove]:" + t);
 
             facesMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-            facesMessage.setDetail(MessageBundle.SUCCESS);
+            facesMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
             return facesMessage;
         } catch (Exception e) {
             // TODO:other exception
@@ -877,7 +879,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
     }
 
     public FacesMessage update(String id, String field, Object value) {
-        FacesMessage outMessage = new FacesMessage("update");
+        FacesMessage outMessage = new FacesMessage(MessageBundle.getLocalizedString("update"));
         try {
             // if (null != value) {
             // / value = value.replaceAll("'", "\\\\'").replaceAll("\"", "\\\\\"");
@@ -898,10 +900,10 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             tx.commit();
 
             if (count == 1) {
-                outMessage.setDetail(MessageBundle.SUCCESS);
+                outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
                 outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
             } else {
-                outMessage.setDetail(MessageBundle.FAILURE);
+                outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.FAILURE));
                 outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
             }
         } catch (Exception ex) {
@@ -988,9 +990,9 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             IllegalArgumentException,
             TransactionRequiredException,
             Exception {
-        FacesMessage outMessage = new FacesMessage(MessageBundle.UPDATE);
+        FacesMessage outMessage = new FacesMessage(MessageBundle.getLocalizedString(MessageBundle.UPDATE));
         outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-        outMessage.setDetail(MessageBundle.SUCCESS);
+        outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
         if (ts == null) {
             return outMessage;
         }
@@ -1007,7 +1009,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
         if (outMessage != null) {
             return outMessage;
         }
-        outMessage = new FacesMessage(MessageBundle.UPDATE);
+        outMessage = new FacesMessage(MessageBundle.getLocalizedString(MessageBundle.UPDATE));
         String message = validationUniqueColumn(x);
         if (message != null) {
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
@@ -1035,7 +1037,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
             afterUpdate(x);
             logger.info("[update]" + x);
             outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
-            outMessage.setDetail(MessageBundle.SUCCESS);
+            outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
             return outMessage;
             // }
         } catch (IllegalArgumentException e) {
@@ -1953,7 +1955,7 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
      */
     public FacesMessage updateField(Object id, String field, Object value) {
         // TODO: validation
-        FacesMessage outMessage = new FacesMessage("update");
+        FacesMessage outMessage = new FacesMessage(MessageBundle.getLocalizedString("update"));
         try {
             T t = getEntityManager().find(entityClass, id);
             Field cfield = entityClass.getDeclaredField(field);
@@ -1964,13 +1966,13 @@ public abstract class BaseEJB<T extends AbstractEntity, E extends AbstractEntity
                 tx.begin();
             }
             T merge = getEntityManager().merge(t);
-            outMessage.setDetail(MessageBundle.SUCCESS);
+            outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.SUCCESS));
             outMessage.setSeverity(FacesMessage.SEVERITY_INFO);
             tx.commit();
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
             logger.error("updateField error:[" + id + "][" + field + "][" + value + "]");
             logger.error(e);
-            outMessage.setDetail(MessageBundle.FAILURE);
+            outMessage.setDetail(MessageBundle.getLocalizedString(MessageBundle.FAILURE));
             outMessage.setSeverity(FacesMessage.SEVERITY_WARN);
         }
         return outMessage;

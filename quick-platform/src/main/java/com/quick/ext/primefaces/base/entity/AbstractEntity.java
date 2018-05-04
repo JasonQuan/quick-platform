@@ -38,6 +38,7 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
 
     @Id
     @GeneratedValue(generator = "system-uuid")
+    @ColumnHelper(header = "ID", visible = false, editAble = false, sort = 1)
     @Column(name = "ID", nullable = false, length = 32)
     protected String id;
     private static final long serialVersionUID = 1L;
@@ -55,7 +56,7 @@ public abstract class AbstractEntity implements Cloneable, BaseEntity, Serializa
 
     @ColumnHelper(header = "版本", sort = 1)
     @Version
-    @Column(name = "\"VERSION\"", columnDefinition = "INT(11) default 0")
+    //@Column(name = "\"VERSION\"", columnDefinition = "INT default 0")
     private Integer version;
 
     public void setId(String id) {

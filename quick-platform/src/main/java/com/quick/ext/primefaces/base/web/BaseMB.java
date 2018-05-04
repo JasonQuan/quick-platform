@@ -787,6 +787,9 @@ public abstract class BaseMB<T extends AbstractEntity, E extends AbstractEntity>
             }
             MessageBundle.autoMessage(message);
         } catch (Exception ex) {
+            if(id == null){
+                logger.error("cellEdit error tips: please voerwrit getId() in entity");                
+            }
             logger.error(ex);
             MessageBundle.showLocalWarning(MessageBundle.FAILURE);
         }

@@ -126,7 +126,7 @@ public class BaseColumnModelSB extends QuickDataService<BaseColumnModel, BaseCol
             if (cm.getIsDate()) {
                 //TODO: fix to custom converter
                 cm.setConverterId("javax.faces.DateTime");
-                cm.setOutFormat("yyyy/MM/dd HH:mm:ss");
+                cm.setOutFormat("yyyy/MM/dd");
             }
             cm.setEntity(entity);
             cm.setHeader(column.replaceAll("_", " ").replace("\"", ""));

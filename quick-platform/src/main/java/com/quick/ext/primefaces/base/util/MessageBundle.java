@@ -1,5 +1,7 @@
 package com.quick.ext.primefaces.base.util;
 
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import javax.faces.application.FacesMessage;
 import javax.faces.application.FacesMessage.Severity;
 import javax.faces.component.UIComponent;
@@ -12,28 +14,36 @@ import org.apache.log4j.Logger;
  * @author Jason
  */
 public class MessageBundle {
-    // private static final String MESSAGE_BUNDLE = "resources.messages";
+
+    private static final String MESSAGE_BUNDLE = "resources.messages";
 
     private static final Logger LOGGER = Logger.getLogger(MessageBundle.class);
 
     /**
-     * @deprecated @param key
+     * @param key
      * @return
      */
     public static String getLocalizedString(String key) {
-        // FacesContext ctx = FacesContext.getCurrentInstance();
+        FacesContext ctx = FacesContext.getCurrentInstance();
         String outcome = key;
-        /*
-		 * try { ResourceBundle bundle =
-		 * ResourceBundle.getBundle(MESSAGE_BUNDLE,
-		 * ctx.getViewRoot().getLocale());
-		 * 
-		 * if (bundle.containsKey(key)) { outcome = bundle.getString(key); }
-		 * else { outcome = key; logger.debug("NO I18N str: " + key); } } catch
-		 * (NullPointerException e) { // return key; // TODO: logger
-		 * logger.warn(e); } catch (MissingResourceException e) {
-		 * logger.error(e); }
-         */
+
+        try {
+            ResourceBundle bundle = ResourceBundle
+                    .getBundle(MESSAGE_BUNDLE,
+                            ctx.getViewRoot().getLocale());
+
+            if (bundle.containsKey(key)) {
+                outcome = bundle.getString(key);
+            } else {
+                outcome = key;
+                LOGGER.debug("NO I18N str: " + key);
+            }
+        } catch (NullPointerException e) { // return key; // TODO: logger
+            LOGGER.warn(e);
+        } catch (MissingResourceException e) {
+            LOGGER.error(e);
+        }
+
         return outcome;
     }
 

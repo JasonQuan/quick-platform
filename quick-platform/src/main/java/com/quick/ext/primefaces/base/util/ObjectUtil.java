@@ -419,8 +419,10 @@ public class ObjectUtil {
             field = fieldse.getName();
             // System.out.println(fieldse.getType().getName());
             try {
-                if ("serialVersionUID".equals(field) || fieldse.getAnnotation(EmbeddedId.class) != null || fieldse.getAnnotation(Id.class) != null
-                        || fieldse.getAnnotation(Lob.class) != null || fieldse.getType().getName().equals(List.class.getName())) {
+                if ("serialVersionUID".equals(field) 
+                        || fieldse.getAnnotation(EmbeddedId.class) != null 
+                        || fieldse.getAnnotation(Lob.class) != null 
+                        || fieldse.getType().getName().equals(List.class.getName())) {
                     continue;
                 }
                 //if (fieldse.getType().getSuperclass()) {
